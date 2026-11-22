@@ -1,0 +1,40 @@
+#!/bin/zsh -f
+#
+# Scripts/docs
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Builds the DocC documentation of CascadingConfiguration into .build/CascadingConfiguration.doccarchive, failing on any
+# warning, passing ${@} to docc convert (e.g., --analyze).
+#
+
+. "${0:A:h}/_setup-script"
+
+print_notice '📚 Building documentation for' "${@}"
+
+readonly module=CascadingConfiguration
+
+dump_output="$(swift package dump-symbol-graph)"
+# shellcheck disable=SC2034
+readonly dump_output
+readonly dump_folder="${${(M)${(f)dump_output}:#Files written to *}#Files written to }"
+
+# Links only this module's symbol graphs, because docc convert would also document every other module in the folder
+symbol_graph_folder="$(mktemp -d)"
+readonly symbol_graph_folder
+ln -s -- "${dump_folder}/${module}"*.symbols.json "${symbol_graph_folder}"
+
+# Xcode provides docc only via xcrun, while a Swift toolchain provides it in its bin folder
+if whence docc >/dev/null; then
+	readonly -a docc=(docc)
+else
+	readonly -a docc=(xcrun docc)
+fi
+
+"${docc[@]}" convert "Sources/${module}/${module}.docc"\
+	--additional-symbol-graph-dir "${symbol_graph_folder}"\
+	--output-path ".build/${module}.doccarchive"\
+	--warnings-as-errors\
+	"${@}"

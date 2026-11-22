@@ -1,0 +1,48 @@
+#
+# .github/workflows/api-breakage.yaml
+#
+---
+name: API Breakage
+on:
+  pull_request:
+    branches: [main]
+    # Rerun whenever a label changes, so that adding or removing the breaking label takes effect
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+permissions: {}
+defaults:
+  run:
+    # Force all run commands to not use Rosetta 2
+    shell: arch -arm64 /bin/zsh -efux --extended-glob --pipe-fail --warn-create-global {0}
+jobs:
+  api-breakage:
+    name: API Breakage
+    # A pull request labeled breaking breaks the API intentionally
+    if: ${{!contains(github.event.pull_request.labels.*.name, 'breaking')}}
+    runs-on: xcode-27
+    steps:
+    - name: 🛒 Checkout repo
+      env:
+        GIT_CONFIG_COUNT: 1
+        GIT_CONFIG_KEY_0: init.defaultBranch
+        GIT_CONFIG_VALUE_0: ${{github.event.repository.default_branch}}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # Include all history & tags for Scripts/api-breakage & Scripts/version
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: 🔧 Setup repo
+      run: Scripts/setup-workflow-repo
+
+    - name: 🛠 Select latest stable Xcode
+      run: |
+        # Sort by version without the .app suffix, so that, e.g., Xcode_27.1.app sorts after Xcode_27.app
+        readonly xcode_path=(/Applications/Xcode_[0-9.]##.app(/nOe:'REPLY=${REPLY%.app}':[1]))
+        sudo xcode-select -s "${xcode_path}"
+        printf $'DEVELOPER_DIR=%s/Contents/Developer\n' "${xcode_path}" >>"${GITHUB_ENV}"
+
+    - name: 💔 Diagnose API breakage since the latest version
+      run: Scripts/api-breakage

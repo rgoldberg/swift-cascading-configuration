@@ -1,0 +1,22 @@
+#!/bin/zsh -f
+#
+# Scripts/update-dependencies
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Update dependencies.
+#
+
+. "${0:A:h}/_setup-script"
+
+print_notice '⬆️​ Updating dependencies for' "${@}"
+
+print_section '🍺 Homebrew'
+export SCC_DO_NOT_PRINT_NOTICE=
+Scripts/bootstrap
+unset SCC_DO_NOT_PRINT_NOTICE
+
+print_section '🕊​ Swift'
+swift package update

@@ -1,0 +1,16 @@
+#!/bin/zsh -f
+#
+# Scripts/build
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Builds the Swift package.
+#
+
+. "${0:A:h}/_setup-script"
+
+print_notice '🏗​ Building' "${@}"
+
+swift build "${@}"

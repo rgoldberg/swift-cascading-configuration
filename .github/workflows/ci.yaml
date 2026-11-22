@@ -1,0 +1,136 @@
+#
+# .github/workflows/ci.yaml
+#
+---
+name: CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # Detect each new dependency release that breaks the build or tests
+  schedule:
+  - cron: 53 4 * * *
+    timezone: America/New_York
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+permissions: {}
+jobs:
+  build-test:
+    name: Build & Test
+    strategy:
+      matrix:
+        runner: [macos-15, macos-15-intel, macos-26, macos-26-intel, xcode-27]
+        swift: ['6.2', '6.3', '6.4']
+        # Swift 6.2 & 6.3 cannot read the module interfaces of the SDK of Xcode 27, which bundles Swift 6.4
+        exclude:
+        - runner: xcode-27
+          swift: '6.2'
+        - runner: xcode-27
+          swift: '6.3'
+      fail-fast: false
+    runs-on: ${{matrix.runner}}
+    defaults: &defaults
+      run:
+        # Force all run commands to not use Rosetta 2 on arm64
+        shell: >-
+          ${{
+            endsWith(matrix.runner, '-intel')
+            && '/bin/zsh -efux --extended-glob --pipe-fail --warn-create-global {0}'
+            || 'arch -arm64 /bin/zsh -efux --extended-glob --pipe-fail --warn-create-global {0}'
+          }}
+    steps:
+    - &checkout
+      name: 🛒 Checkout repo
+      env:
+        GIT_CONFIG_COUNT: 1
+        GIT_CONFIG_KEY_0: init.defaultBranch
+        GIT_CONFIG_VALUE_0: ${{github.event.repository.default_branch}}
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # Include all history & tags for Scripts/version
+        fetch-depth: 0
+        persist-credentials: false
+
+    - &setup-repo
+      name: 🔧 Setup repo
+      run: Scripts/setup-workflow-repo
+
+    - &select-xcode
+      name: 🛠 Select latest stable Xcode
+      run: |
+        # Sort by version without the .app suffix, so that, e.g., Xcode_27.1.app sorts after Xcode_27.app
+        readonly xcode_path=(/Applications/Xcode_[0-9.]##.app(/nOe:'REPLY=${REPLY%.app}':[1]))
+        sudo xcode-select -s "${xcode_path}"
+        printf $'DEVELOPER_DIR=%s/Contents/Developer\n' "${xcode_path}" >>"${GITHUB_ENV}"
+
+    - name: 🕊 Use Swiftly Swift
+      if: ${{matrix.runner != 'xcode-27'}}
+      run: |
+        # Install Swiftly from swift.org instead of from Homebrew, which no longer bottles updated formulae for x86_64
+        curl -fsSLo "${RUNNER_TEMP}/swiftly.pkg" https://download.swift.org/swiftly/darwin/swiftly.pkg
+        installer -pkg "${RUNNER_TEMP}/swiftly.pkg" -target CurrentUserHomeDirectory
+        path=(~/.swiftly/bin "${path[@]}")
+        swiftly init -ny --skip-install
+        swiftly install -y --use ${{matrix.swift}}
+        swiftly link latest
+        printf %s ~/.swiftly/bin >>"${GITHUB_PATH}"
+
+    - &test-dependency-versions
+      name: 🧪 Build & test with oldest & newest dependencies
+      run: Scripts/test-dependency-versions -c release
+
+  build-test-linux:
+    name: Build & Test (${{matrix.container}})
+    strategy:
+      matrix:
+        container: [swift:6.2, swift:6.3, swift:6.4]
+      fail-fast: false
+    runs-on: ubuntu-latest
+    container: ${{matrix.container}}
+    defaults:
+      run:
+        # zsh is installed only in the container, so the runner must not look up an absolute path on the host
+        shell: zsh -efux --extended-glob --pipe-fail --warn-create-global {0}
+    steps:
+    - name: 💤 Install jq & zsh
+      shell: bash
+      run: apt-get update -q && apt-get install -qy jq zsh
+
+    - *checkout
+
+    - name: 🔧 Setup repo
+      run: |
+        # The container user does not own the checkout
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+        Scripts/setup-workflow-repo
+
+    - *test-dependency-versions
+
+  lint:
+    name: Lint
+    strategy:
+      matrix:
+        runner: [xcode-27]
+    runs-on: ${{matrix.runner}}
+    defaults: *defaults
+    steps:
+    - *checkout
+
+    - *setup-repo
+
+    - *select-xcode
+
+    - name: 👢 Bootstrap
+      run: |
+        brew untap -fq aws/tap 2>/dev/null || true
+        Scripts/bootstrap
+
+    - name: 🚨 Lint
+      run: Scripts/lint
+
+    - name: 📚 Build documentation
+      # Runs even after a lint failure, so that 1 run reports every failure
+      if: ${{!cancelled()}}
+      run: Scripts/docs

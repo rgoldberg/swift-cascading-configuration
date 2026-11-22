@@ -1,0 +1,38 @@
+#
+# .github/workflows/outdated-dependencies.yaml
+#
+---
+name: Outdated Dependencies
+on:
+  schedule:
+  - cron: 47 4 * * *
+    timezone: America/New_York
+  workflow_dispatch: {}
+permissions: {}
+jobs:
+  outdated-dependencies:
+    name: Outdated Dependencies
+    runs-on: macos-26
+    defaults:
+      run:
+        # Force all run commands to not use Rosetta 2
+        shell: arch -arm64 /bin/zsh -efux --extended-glob --pipe-fail --warn-create-global {0}
+    steps:
+    - name: 🛒 Checkout repo
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: 🍺 Install swift-outdated
+      run: brew install swift-outdated
+
+    - name: 🔎 Find stable dependency releases outside their version ranges
+      run: |
+        # Resolve the newest version in each range, so that swift-outdated reports only versions outside the ranges
+        swift package resolve
+        # swift-outdated exits 0 even if it finds a newer version, but prints to stdout only then
+        outdated="$(swift outdated -i)"
+        if [[ -n "${outdated}" ]]; then
+          printf %s\\n "${outdated}"
+          exit 1
+        fi

@@ -1,0 +1,27 @@
+#!/bin/zsh -f
+#
+# Scripts/version
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Outputs the swift-cascading-configuration version.
+#
+
+. "${0:A:h}/_setup-script"
+
+branch="${"$(git rev-parse --abbrev-ref HEAD)":/main}"
+if [[ "${branch}" = HEAD ]]; then
+	if ! git show-ref --verify --quiet refs/heads/main || git merge-base --is-ancestor HEAD main; then
+		branch=
+	else
+		branch="${"${"${(fnO)"$(git branch --contains HEAD --format '%(ahead-behind:HEAD) %(refname:short)')"}"[1]}"##* }"
+	fi
+fi
+readonly branch
+
+printf $'%s%s%s\n'\
+	"$(git describe --tags 2>/dev/null || printf 0.0.0)"\
+	"${branch:+"-${branch}"}"\
+	"${"$(git diff-index HEAD --;git ls-files --exclude-standard --others)":+"${SCC_DIRTY_INDICATOR-+}"}"

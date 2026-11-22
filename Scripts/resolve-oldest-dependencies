@@ -1,0 +1,31 @@
+#!/bin/zsh -f
+#
+# Scripts/resolve-oldest-dependencies
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Resolves each direct dependency that has a version range to the range's lower bound, so that a build tests the oldest
+# supported version of each.
+#
+
+. "${0:A:h}/_setup-script"
+
+print_notice '⬇️​ Resolving oldest dependencies for' "${@}"
+
+ensure_command_available jq
+
+# Resolves all dependencies first, because resolving 1 to a version fails for a dependency that is not yet resolved
+# (e.g., in a fresh clone)
+swift package resolve
+
+# Each element is a dependency's identity & lower bound, separated by a space
+# shellcheck disable=SC2066
+for dependency in "${(f)"$(
+	swift package dump-package\
+		| jq -r '.dependencies[][][] | select(.requirement.range) | .identity + " " + .requirement.range[0].lowerBound'
+)":#}"
+do
+	swift package resolve "${dependency% *}" --version "${dependency#* }"
+done

@@ -1,0 +1,129 @@
+#!/bin/zsh -f
+#
+# Scripts/_setup-script
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Performs boilerplate setup for scripts.
+#
+
+builtin unalias -as
+setopt err_exit extended_glob pipe_fail no_unset warn_create_global
+export IFS=$' \t\n\0'
+export NULLCMD=cat
+export PAGER=cat
+export READNULLCMD=cat
+export TMPDIR="${"${TMPDIR:-/tmp/}"/%(#b)([^\/])/"${match[1]}"/}"
+export TMPPREFIX="${TMPPREFIX:-"${TMPDIR}"zsh}"
+unset CDPATH
+unset ENV
+unset TMPSUFFIX
+
+# Prints the GHA workflow command ${1} (e.g., error), with the properties ${@[2,-2]} (e.g., file=Package.swift) & the
+# value ${@[-1]}, escaping each property value & the value
+print_gha_command() {
+	local -a properties=()
+	local property
+	for property in "${@[2,-2]}"; do
+		properties+=("${property%%=*}=${${${${${${property#*=}//\%/%25}//$'\r'/%0D}//$'\n'/%0A}//:/%3A}//,/%2C}")
+	done
+	printf $'::%s%s::%s\n' "${1}" "${properties[1]+ ${(j:,:)properties}}" "${${${@[-1]//\%/%25}//$'\r'/%0D}//$'\n'/%0A}"
+}
+
+# Ends the GHA log group that print_section started, if any
+end_gha_group() {
+	if [[ -v scc_is_in_gha_group ]]; then
+		print_gha_command endgroup ''
+		unset scc_is_in_gha_group
+	fi
+}
+
+# Ends the last GHA log group when the script exits: via the EXIT trap, which zsh skips when err_exit exits after a
+# function fails, and via the ZERR trap, which zsh runs before each err_exit exit (acting only in the script's own
+# shell, not in a subshell, whose exit does not end the script)
+trap end_gha_group EXIT
+trap 'if [[ -o err_exit ]] && ((! ZSH_SUBSHELL)); then end_gha_group; fi' ZERR
+
+# Prints the message formed by formatting ${@} like printf (e.g., print_error 'Invalid version: %s' "${version}") to
+# stderr, as an error annotation in a GHA workflow (after ending its log group, so that the error is never hidden in a
+# collapsed group), or else prefixed with Error:, then returns 1, so that a script with err_exit exits 1, unless the
+# call handles the failure (e.g., print_error … || exit 2)
+print_error() {
+	local message
+	# shellcheck disable=SC2059
+	printf -v message -- "${@}"
+	if [[ "${GITHUB_ACTIONS-}" == true ]]; then
+		end_gha_group
+		print_gha_command error "${message}" >&2
+	elif [[ -t 2 ]]; then
+		print -r -- $'\e[1;31mError:\e[0m '"${message}" >&2
+	else
+		print -r -- "Error: ${message}" >&2
+	fi
+	return 1
+}
+
+readonly scc_folder="${0:A:h:h}"
+if ! cd "${scc_folder}"; then
+	print_error 'Failed to cd into folder: %s' "${scc_folder}"
+fi
+
+print_notice() {
+	[[ -v SCC_DO_NOT_PRINT_NOTICE ]] && return
+	if [[ -t 1 ]]; then
+		local -r prefix=$'\e[1;34m==>\e[0m'
+	else
+		local -r prefix='==>'
+	fi
+	printf $'%s %s swift-cascading-configuration %s%s\n'\
+		"${prefix}"\
+		"${1}"\
+		"${SCC_VERSION:-$(Scripts/version)}"\
+		"${${*:2}:+ (arguments: ${${(q)@:2}[*]})}"
+}
+
+# Prints the heading ${1} of a section of the script's output, which, in a GHA workflow, starts a log group that lasts
+# until the next section, an error, or the end of the script
+print_section() {
+	if [[ "${GITHUB_ACTIONS-}" == true ]]; then
+		end_gha_group
+		typeset -g scc_is_in_gha_group=
+		print_gha_command group "${1}"
+	else
+		printf -- $'--> %s\n' "${1}"
+	fi
+}
+
+ensure_command_available() {
+	local -i return_status=0
+	local command
+	for command in "${@}"; do
+		if ! whence -- "${command}" >/dev/null; then
+			print_error $'%1$s is not installed. Run \'Scripts/bootstrap\' or \'brew install %1$s\'.' "${command}" ||
+				return_status=1
+		fi
+	done
+	return "${return_status}"
+}
+
+# Prints each existing regular file, except ignored files & vendored files (in a target's Vendored folder), separated by
+# NULs
+project_files() {
+	# shellcheck disable=SC1036,SC2034,SC2206
+	local -ar files=(${^${(0)"$(git ls-files -z --cached --others --exclude-standard --deduplicate)"}}(N.))
+	print -rn -- "${(pj:\0:)${(@)files:#(Sources|Tests)/*/Vendored/*}}"
+}
+
+# Removes SwiftFormat's progress & summary lines from stdin, plus each line fully matching an extended regex in ${@}
+filter_swiftformat_output() {
+	# shellcheck disable=SC2034
+	local -ar patterns=(
+		'Running SwiftFormat\.{3}'
+		'Reading (?:config|swift-version) file at .*'
+		'\x1b\[32mSwiftFormat completed in \d+(?:\.\d+)?s\.\x1b\[0m'
+		"${@}"
+	)
+	grep -vxE "${(j:|:)patterns}" || true
+}

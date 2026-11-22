@@ -1,0 +1,33 @@
+#!/bin/zsh -f
+#
+# Scripts/test-dependency-versions
+# swift-cascading-configuration
+#
+# Copyright © 2026 Ross Goldberg
+# SPDX-License-Identifier: MIT
+#
+# Builds (passing its arguments to Scripts/build) & tests with the oldest, then with the newest, supported version of
+# each dependency, even if the oldest fails, then exits nonzero if either fails.
+#
+
+. "${0:A:h}/_setup-script"
+
+print_notice '🧪 Testing dependency versions for' "${@}"
+
+typeset -a failed_versions=()
+
+print_section '⬇️​ Oldest dependency versions'
+if ! (Scripts/resolve-oldest-dependencies && Scripts/build "${@}" && Scripts/test); then
+	failed_versions+=(oldest)
+fi
+
+print_section '⬆️​ Newest dependency versions'
+# Resets first, because SwiftPM 6.2 & 6.3 reuse a dependency's older manifest when updating it to a version that adds
+# traits (e.g., swift-async-algorithms 1.1.3 to 1.1.7), so they reject the version's traits
+if ! (swift package reset && swift package update && Scripts/build "${@}" && Scripts/test); then
+	failed_versions+=(newest)
+fi
+
+if (("${#failed_versions}")); then
+	print_error 'Failed with the %s dependency versions' "${(j: & :)failed_versions}"
+fi
