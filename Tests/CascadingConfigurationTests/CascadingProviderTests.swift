@@ -101,6 +101,38 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
+	@Test
+	func `fetch value error halts cascading`() async {
+		let provider = CascadingProvider(
+			providers: [
+				.init(FailingProvider(failingKey: ["a", "setting"])),
+				.init(InMemoryProvider(values: ["setting": "unreachable"])),
+			],
+		)
+		await #expect(throws: FailingProvider.TestError.self) {
+			try await provider.fetchValue(forKey: ["a", "setting"], type: .string)
+		}
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `watch value error halts cascading`() async throws {
+		let provider = CascadingProvider(
+			providers: [
+				.init(FailingProvider(failingKey: ["a", "setting"])),
+				.init(InMemoryProvider(values: ["setting": "unreachable"])),
+			],
+		)
+		try await provider.watchValue(forKey: ["a", "setting"], type: .string) { updates in
+			var iterator = updates.makeAsyncIterator()
+			let result = await iterator.next(isolation: #isolation)
+			#expect(throws: FailingProvider.TestError.self) {
+				try result?.get()
+			}
+		}
+	}
+
+	@available(Configuration 1.0, *)
 	@Test(
 		arguments: [
 			(nil, "1 scope"),
