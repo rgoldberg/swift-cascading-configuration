@@ -27,10 +27,11 @@ which the package builds & passes all tests, as
 ## Design
 
 - Re-export Swift Configuration from `CascadingConfiguration`, so that each
-  target that depends on `CascadingConfiguration` imports it instead of
-  `Configuration` & depends on Swift Configuration directly only for another of
-  its products (e.g., `ConfigurationTesting`), its traits, or a newer minimum
-  version
+  target that depends on `CascadingConfiguration` depends on Swift Configuration
+  directly only for another of its products (e.g., `ConfigurationTesting`), its
+  traits, or a newer minimum version
+- Import `Configuration`, not `CascadingConfiguration`, in a file that uses only
+  Swift Configuration symbols
 - Link a Swift Configuration symbol in DocC without a `Configuration/` prefix
   (e.g., ``` ``ConfigProvider/ignoringCascadeContext()`` ```), which the
   re-export requires
