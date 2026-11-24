@@ -476,6 +476,8 @@ struct CascadingProviderTests {
 		#expect(provider.debugDescription == "CascadingProvider[providers: InMemoryProvider[1st, 0 values: ]]")
 	}
 
+	// Swift Testing has no exit tests on iOS, tvOS, watchOS, or visionOS
+	#if os(macOS) || os(Linux) || os(Windows)
 	@available(Configuration 1.0, *)
 	@Test
 	func `no upstream providers fails`() async {
@@ -491,4 +493,5 @@ struct CascadingProviderTests {
 			_ = CascadingProvider.CascadeScopeFloor(integerLiteral: -1)
 		}
 	}
+	#endif
 }
