@@ -20,7 +20,7 @@ Algorithms](https://github.com/apple/swift-async-algorithms), which licenses
 them under the Apache License 2.0 with the [Runtime Library
 Exception](LICENSES/Swift-exception.txt).
 
-The notice of Swift Configuration says:
+The part of the notice of Swift Configuration that pertains to these files says:
 
 ```text
                        The SwiftConfiguration Project
