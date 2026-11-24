@@ -26,20 +26,16 @@ which the package builds & passes all tests, as
 
 ## Design
 
-- Re-export Swift Configuration from `CascadingConfiguration`, so that each
-  target that depends on `CascadingConfiguration` depends on Swift Configuration
-  directly only for another of its products (e.g., `ConfigurationTesting`), its
-  traits, or a newer minimum version
-- Import `Configuration`, not `CascadingConfiguration`, in a file that uses only
-  Swift Configuration symbols
+- Keep `CascadingConfiguration` re-exporting Swift Configuration, so that a
+  package that depends on `CascadingConfiguration` needs no direct dependency on
+  Swift Configuration
 - Link a Swift Configuration symbol in DocC without a `Configuration/` prefix
   (e.g., ``` ``ConfigProvider/ignoringCascadeContext()`` ```), which the
   re-export requires
 - Declare no `platforms` in `Package.swift`; instead, mark each declaration that
   uses Swift Configuration with `@available(Configuration 1.0, *)` (each `@Test`
-  function, never its suite, which Swift Testing rejects), as Swift
-  Configuration does, so that a package that supports older platforms can depend
-  on `CascadingConfiguration`
+  function, never its suite, which Swift Testing rejects), so that a package
+  that supports older platforms can depend on `CascadingConfiguration`
 
 ## Code From Other Projects
 
