@@ -4,7 +4,7 @@ changelog:
   - title: 💥 Breaking Changes
     labels: [breaking]
   - title: 🚀 Features
-    labels: [feature]
+    labels: [enhancement]
   - title: 🐛 Bug Fixes
     labels: [bug]
   - title: Changes
