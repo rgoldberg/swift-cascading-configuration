@@ -108,6 +108,33 @@ jobs:
 
     - *test-dependency-versions
 
+  build-apple-platform:
+    name: Build (${{matrix.platform}})
+    strategy:
+      matrix:
+        runner: [xcode-27]
+        # macOS is built & tested above; a simulator would run tests the same way as macOS does, so only building for
+        # each generic device catches each platform's own problems (e.g., an unavailable API, or 32-bit Int on watchOS)
+        platform: [iOS, tvOS, watchOS, visionOS]
+      fail-fast: false
+    runs-on: ${{matrix.runner}}
+    defaults: *defaults
+    steps:
+    - *checkout
+
+    - *setup-repo
+
+    - *select-xcode
+
+    - name: 🏗 Build library & tests
+      env:
+        PLATFORM: ${{matrix.platform}}
+      run: |
+        xcodebuild build-for-testing\
+          -scheme swift-cascading-configuration\
+          -destination "generic/platform=${PLATFORM}"\
+          CODE_SIGNING_ALLOWED=NO
+
   lint:
     name: Lint
     strategy:
