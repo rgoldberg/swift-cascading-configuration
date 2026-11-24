@@ -109,7 +109,7 @@ directly:
 ```swift
 .package(
     url: "https://github.com/apple/swift-configuration",
-    from: "1.5.0",
+    from: "1.0.2",
     traits: [.defaults, "CommandLineArguments"],
 ),
 ```
