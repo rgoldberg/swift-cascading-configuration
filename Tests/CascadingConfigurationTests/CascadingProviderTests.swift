@@ -143,10 +143,13 @@ struct CascadingProviderTests {
 					CascadingProvider.cascadeScopeFloorContextKey: 1,
 					CascadingProvider.baseScopeCascadeScopeFloorContextKey: 0,
 					"environment": "production",
+					// Not in the cascade context, despite sharing its name with the base
+					// scope entries
+					"baseScope.0": "kept",
 				]) { $1 },
 		)
 		_ = try provider.value(forKey: key, type: .string)
-		#expect(upstream.contexts.withLock(\.self) == [["environment": "production"]])
+		#expect(upstream.contexts.withLock(\.self) == [["baseScope.0": "kept", "environment": "production"]])
 	}
 
 	@available(Configuration 1.0, *)
@@ -301,7 +304,10 @@ struct CascadingProviderTests {
 		let recorder = KeyRecordingProvider()
 		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
 		// The base scope claims 2 components, but has only 1
-		let context: [String: ConfigContextValue] = ["baseScope.count": 2, "baseScope.0": "git"]
+		let context: [String: ConfigContextValue] = [
+			"cascadingConfiguration.baseScope.count": 2,
+			"cascadingConfiguration.baseScope.0": "git",
+		]
 		_ = try provider.value(forKey: .init(["pager"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.pager"])
 	}
@@ -309,10 +315,14 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `base scope context entries`() {
-		#expect(CascadingProvider.baseScopeContext([]) == ["baseScope.count": 0])
+		#expect(CascadingProvider.baseScopeContext([]) == ["cascadingConfiguration.baseScope.count": 0])
 		#expect(
 			CascadingProvider.baseScopeContext(["org", "tool"])
-				== ["baseScope.count": 2, "baseScope.0": "org", "baseScope.1": "tool"],
+				== [
+					"cascadingConfiguration.baseScope.count": 2,
+					"cascadingConfiguration.baseScope.0": "org",
+					"cascadingConfiguration.baseScope.1": "tool",
+				],
 		)
 	}
 

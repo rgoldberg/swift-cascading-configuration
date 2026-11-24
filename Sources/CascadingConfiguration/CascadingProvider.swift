@@ -124,7 +124,7 @@ public struct CascadingProvider: Sendable {
 	/// counting base scopes, that a key tried by a cascading lookup keeps. It
 	/// overrides the cascade scope floor of every upstream provider. An entry
 	/// with a non-integer value is ignored, and a negative one behaves like `0`.
-	public static let cascadeScopeFloorContextKey = "cascadeScopeFloor"
+	public static let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
 
 	/// The name of the key context entry that holds a key's base scope cascade
 	/// scope floor.
@@ -134,15 +134,17 @@ public struct CascadingProvider: Sendable {
 	/// keeps. It overrides the base scope cascade scope floor of every upstream
 	/// provider whose base scope is not empty. An entry with a non-integer value
 	/// is ignored, and a negative one behaves like `0`.
-	public static let baseScopeCascadeScopeFloorContextKey = "baseScopeCascadeScopeFloor"
+	public static let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
 
 	/// The prefix of the names of the key context entries that hold a key's base
 	/// scope.
 	///
 	/// A context value cannot be an array, so ``baseScopeContext(_:)`` stores the
-	/// base scope as indexed entries (e.g., `baseScope.count`, `baseScope.0` &
-	/// `baseScope.1`).
-	public static let baseScopeContextKey = "baseScope"
+	/// base scope as indexed entries (e.g.,
+	/// `cascadingConfiguration.baseScope.count`,
+	/// `cascadingConfiguration.baseScope.0` &
+	/// `cascadingConfiguration.baseScope.1`).
+	public static let baseScopeContextKey = "cascadingConfiguration.baseScope"
 
 	/// Returns the key context entries that override the base scope of a key.
 	///
