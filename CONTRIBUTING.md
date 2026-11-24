@@ -60,7 +60,7 @@ issue](https://github.com/ro-ss/swift-cascading-configuration/issues/new) titled
 
 Project leads agree to the following terms:
 
-- Project leads have full control, however, over the project's future direction
+- Project leads have full control over the project's future direction
 - If you are the sole project lead, but can no longer lead the project, either:
   - Find someone else to assume the project leadership who agrees to adhere to
     the existing terms
