@@ -63,7 +63,8 @@ default, `.noCascading`, keeps the whole base scope, while `0` lets the cascade
 remove it (e.g., `0` reaches `PAGER` for `pager`, with base scope `["tool"]`).
 
 A key overrides the base scope of every upstream provider via
-`CascadingProvider.baseScopeContext(_:)`:
+`CascadingProvider.baseScopeContext(_:)`: an empty base scope removes every base
+scope, while any other base scope replaces each base scope that is not empty:
 
 ```swift
 // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
