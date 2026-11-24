@@ -38,9 +38,6 @@ func cascadingLookups(
 		return upstreams.indices.map { (upstreamIndex: $0, key: .init(key.components, context: context)) }
 	}
 	let scope = key.components.dropLast()
-	// Could change: 1 floor for every upstream provider, if each upstream
-	// provider that needs another floor goes in another `CascadingProvider`,
-	// which then also cascades only after this one finds nothing
 	let plans = upstreams.map { upstream in
 		let baseScope = upstream.baseScope.isEmpty ? [] : cascadeContext.baseScope ?? upstream.baseScope
 		let fullScope = baseScope + scope
