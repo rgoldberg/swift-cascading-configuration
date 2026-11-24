@@ -15,7 +15,7 @@ import Configuration
 typealias CascadingLookup = (upstreamIndex: Int, key: AbsoluteConfigKey)
 
 /// Returns every key that a cascading lookup of `key` tries, from the most
-/// specific step to the least, and in precedence order within each step.
+/// specific step to the least & in precedence order within each step.
 ///
 /// Each step removes 1 more scope from the key of every upstream provider, and
 /// an upstream provider tries no key that has fewer scopes than its own floor,

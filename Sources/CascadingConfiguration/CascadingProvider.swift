@@ -25,9 +25,9 @@ public import Configuration
 /// ## Value resolution order
 ///
 /// Key specificity takes precedence over provider order: each step of a cascade
-/// removes 1 more scope from the key of every upstream provider, and queries
-/// every upstream provider before the next step. Within 1 step, upstream
-/// providers are queried in the order in which they were provided.
+/// removes 1 more scope from the key of every upstream provider & queries every
+/// upstream provider before the next step. Within 1 step, upstream providers
+/// are queried in the order in which they were provided.
 ///
 /// ```swift
 /// let provider = CascadingProvider(providers: [.init(x), .init(y)])

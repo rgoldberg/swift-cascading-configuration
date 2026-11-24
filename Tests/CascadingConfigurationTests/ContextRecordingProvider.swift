@@ -9,8 +9,8 @@
 import Configuration
 import Synchronization
 
-/// An upstream provider that records the context of every key that it is asked
-/// for, and has no values.
+/// An upstream provider that has no values & records the context of every key
+/// that it is asked for.
 @available(Configuration 1.0, *)
 final class ContextRecordingProvider: ConfigProvider {
 	/// The contexts of the keys looked up so far, in lookup order.
