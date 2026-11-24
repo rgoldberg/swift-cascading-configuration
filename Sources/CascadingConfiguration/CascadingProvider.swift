@@ -76,14 +76,17 @@ public import Configuration
 ///
 /// // Tries "a.b.setting", then "a.setting"
 /// config.string(
-///     forKey: ConfigKey("a.b.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
+///     forKey: ConfigKey("a.b.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1]),
 /// )
 /// ```
 ///
-/// A base scope cascade scope floor, counted in the whole key including base
-/// scopes, lets the cascade remove the base scopes of an upstream provider
-/// whose base scope is not empty (e.g., `0` reaches `PAGER` for `pager`, with
-/// base scope `["tool"]`).
+/// A base scope cascade scope floor is the minimum number of base scopes that a
+/// key tried by the cascade keeps, which applies only to an upstream provider
+/// whose base scope is not empty, and only if the cascade scope floor is `0`,
+/// because the cascade removes a base scope only after every other scope.
+/// ``CascadeScopeFloor/noCascading`` (the default) keeps the whole base scope,
+/// while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`,
+/// with base scope `["tool"]`).
 ///
 /// A key overrides a base scope via ``baseScopeContext(_:)``: an empty base
 /// scope removes the base scope of every upstream provider, while any other
@@ -130,10 +133,10 @@ public struct CascadingProvider: Sendable {
 	/// scope floor.
 	///
 	/// The base scope cascade scope floor is an integer: the minimum number of
-	/// scopes, counting base scopes, that a key tried by a cascading lookup
-	/// keeps. It overrides the base scope cascade scope floor of every upstream
-	/// provider whose base scope is not empty. An entry with a non-integer value
-	/// is ignored, and a negative one behaves like `0`.
+	/// base scopes that a key tried by a cascading lookup keeps, if its cascade
+	/// scope floor is `0`. It overrides the base scope cascade scope floor of
+	/// every upstream provider whose base scope is not empty. An entry with a
+	/// non-integer value is ignored, and a negative one behaves like `0`.
 	public static let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
 
 	/// The prefix of the names of the key context entries that hold a key's base
@@ -254,11 +257,10 @@ public extension CascadingProvider {
 		/// by the cascade keeps, unless the key's context overrides it.
 		public var cascadeScopeFloor: CascadeScopeFloor
 
-		/// The minimum number of scopes, counting base scopes, that a key tried by
-		/// the cascade keeps, if the base scope is not empty, unless the key's
-		/// context overrides it; `nil` uses ``cascadeScopeFloor``, so the cascade
-		/// never removes a base scope.
-		public var baseScopeCascadeScopeFloor: CascadeScopeFloor?
+		/// The minimum number of base scopes that a key tried by the cascade keeps,
+		/// if the base scope is not empty & the cascade scope floor is `0`, unless
+		/// the key's context overrides it.
+		public var baseScopeCascadeScopeFloor: CascadeScopeFloor
 
 		/// Creates an upstream provider.
 		///
@@ -268,14 +270,15 @@ public extension CascadingProvider {
 		///     `provider` is asked for.
 		///   - cascadeScopeFloor: The minimum number of scopes, not counting base
 		///     scopes, that a key tried by the cascade keeps.
-		///   - baseScopeCascadeScopeFloor: The minimum number of scopes, counting
-		///     base scopes, that a key tried by the cascade keeps, if `baseScope`
-		///     is not empty; `nil` uses `cascadeScopeFloor`.
+		///   - baseScopeCascadeScopeFloor: The minimum number of base scopes that a
+		///     key tried by the cascade keeps, if `baseScope` is not empty & the
+		///     cascade scope floor is `0`; ``CascadeScopeFloor/noCascading`` keeps
+		///     the whole base scope.
 		public init(
 			_ provider: any ConfigProvider,
 			baseScope: [String] = [],
 			cascadeScopeFloor: CascadeScopeFloor = 0,
-			baseScopeCascadeScopeFloor: CascadeScopeFloor? = nil,
+			baseScopeCascadeScopeFloor: CascadeScopeFloor = .noCascading,
 		) {
 			self.provider = provider
 			self.baseScope = baseScope

@@ -41,16 +41,17 @@ func cascadingLookups(
 	let plans = upstreams.map { upstream in
 		let baseScope = upstream.baseScope.isEmpty ? [] : cascadeContext.baseScope ?? upstream.baseScope
 		let fullScope = baseScope + scope
+		let cascadeScopeFloor = cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor
+		// The cascade removes a base scope only after every other scope, so a base
+		// scope cascade scope floor applies only if no other scope must be kept
 		let floor =
-			if
-				!baseScope.isEmpty,
-				let baseScopeFloor = cascadeContext.baseScopeCascadeScopeFloor ?? upstream.baseScopeCascadeScopeFloor
-			{
-				baseScopeFloor
-			} else {
-				(cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor).increased(by: baseScope.count)
-			}
-		return (scope: fullScope, floor: Swift.min(floor.rawValue, fullScope.count))
+			cascadeScopeFloor.rawValue > 0 || baseScope.isEmpty
+				? cascadeScopeFloor.increased(by: baseScope.count).rawValue
+				: Swift.min(
+					(cascadeContext.baseScopeCascadeScopeFloor ?? upstream.baseScopeCascadeScopeFloor).rawValue,
+					baseScope.count,
+				)
+		return (scope: fullScope, floor: Swift.min(floor, fullScope.count))
 	}
 	let stepCount = plans.lazy.map { $0.scope.count - $0.floor }.max() ?? 0
 	return (0...stepCount)

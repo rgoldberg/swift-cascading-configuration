@@ -55,8 +55,12 @@ step.
 An upstream provider can have a base scope (e.g., `["tool"]`): scopes that are
 prepended to every key that it is asked for, like a namespace. Unlike a key
 prefix (see `ConfigProvider.prefixKeys(with:)`), a base scope can be removed by
-a cascade, but only down to a separate floor (the base scope cascade scope
-floor).
+a cascade, but only once no other scopes remain, and only down to a separate
+floor: the base scope cascade scope floor, the minimum number of base scopes
+that a key tried by the cascade keeps. That floor applies only if the cascade
+scope floor (see [Limiting the Cascade](#limiting-the-cascade)) is `0`; its
+default, `.noCascading`, keeps the whole base scope, while `0` lets the cascade
+remove it (e.g., `0` reaches `PAGER` for `pager`, with base scope `["tool"]`).
 
 A key overrides the base scope of every upstream provider via
 `CascadingProvider.baseScopeContext(_:)`:
