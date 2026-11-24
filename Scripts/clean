@@ -8,6 +8,16 @@
 #
 # Deletes the build folder & other generated files.
 #
+# Usage: clean [-D] [-P] [-r] [-x]
+#
+# -D: keep dependencies, via swift package clean instead of swift package reset
+#
+# -P: keep the build folder & dependencies
+#
+# -r: also delete Package.resolved
+#
+# -x: also delete .swiftpm
+#
 
 . "${0:A:h}/_setup-script"
 

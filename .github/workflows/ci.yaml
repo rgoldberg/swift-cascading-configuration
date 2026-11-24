@@ -75,7 +75,7 @@ jobs:
         swiftly init -ny --skip-install
         swiftly install -y --use ${{matrix.swift}}
         swiftly link latest
-        printf %s ~/.swiftly/bin >>"${GITHUB_PATH}"
+        printf $'%s\n' ~/.swiftly/bin >>"${GITHUB_PATH}"
 
     - &test-dependency-versions
       name: 🧪 Build & test with oldest & newest dependencies

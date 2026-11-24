@@ -25,7 +25,7 @@
 import Synchronization
 
 // Vendored copy of https://github.com/apple/swift-async-algorithms/pull/360
-// via swift-configuration, using `CheckedContinuation` instead of `UnsafeContinuation`
+// via swift-configuration 1.5.0, using `CheckedContinuation` instead of `UnsafeContinuation`
 
 @available(Configuration 1.0, *)
 final class CombineLatestManyStorage<Element: Sendable, Failure: Error>: Sendable {

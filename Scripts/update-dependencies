@@ -6,7 +6,7 @@
 # Copyright © 2026 Ross Goldberg
 # SPDX-License-Identifier: MIT
 #
-# Update dependencies.
+# Updates dependencies.
 #
 
 . "${0:A:h}/_setup-script"

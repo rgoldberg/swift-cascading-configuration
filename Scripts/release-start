@@ -16,7 +16,7 @@
 #
 # <title> may contain at most 64 characters, which cannot be control characters
 #
-# <ref> if optional ref supplied, must be on the main branch; defaults to the tip of the GitHub main branch
+# <ref>, if supplied, must be on the main branch; defaults to the tip of the GitHub main branch
 #
 
 . "${0:A:h}/_setup-script"

@@ -44,14 +44,14 @@ public import Configuration
 /// An upstream provider can have a base scope: scopes that are prepended to
 /// every key that it is asked for, like a namespace. Unlike a key prefix (see
 /// `ConfigProvider.prefixKeys(with:)`), a cascade can remove base scopes, but
-/// only below a separate floor.
+/// only down to a separate floor.
 ///
 /// ```swift
 /// let provider = CascadingProvider(
 ///     providers: [
 ///         .init(EnvironmentVariablesProvider(), baseScope: ["tool"]),
 ///         .init(fileProvider),
-///     ]
+///     ],
 /// )
 ///
 /// // Looking up "install.limit" queries, in order:

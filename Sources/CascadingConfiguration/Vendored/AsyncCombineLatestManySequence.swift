@@ -23,6 +23,7 @@
 //===----------------------------------------------------------------------===//
 
 // Vendored copy of https://github.com/apple/swift-async-algorithms/pull/360
+// via swift-configuration 1.5.0
 
 /// Creates an asynchronous sequence that combines the latest values from many async sequences.
 ///
