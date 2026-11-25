@@ -39,6 +39,9 @@ let config = ConfigReader(
 config.int(forKey: "install.limit")
 ```
 
+`FileProvider<JSONSnapshot>` needs the `JSON` trait of Swift Configuration (see
+[Traits](#traits)).
+
 `CascadingConfiguration` re-exports Swift Configuration, so
 `import CascadingConfiguration` also imports `Configuration`.
 
@@ -103,16 +106,7 @@ let config = ConfigReader(providers: [
 ```
 
 `CommandLineArgumentsProvider` needs the `CommandLineArguments` trait of Swift
-Configuration, which a package enables by depending on Swift Configuration
-directly:
-
-```swift
-.package(
-    url: "https://github.com/apple/swift-configuration",
-    from: "1.0.2",
-    traits: [.defaults, "CommandLineArguments"],
-),
-```
+Configuration (see [Traits](#traits)).
 
 ### Watching & Errors
 
@@ -137,6 +131,22 @@ that uses it:
 
 ```swift
 .product(name: "CascadingConfiguration", package: "swift-cascading-configuration"),
+```
+
+### Traits
+
+`CascadingConfiguration` enables no trait of Swift Configuration, so that a
+package that depends on it enables only the traits that it uses. A package
+enables each trait that it uses (e.g., `JSON` for `JSONSnapshot`, or
+`CommandLineArguments` for `CommandLineArgumentsProvider`) by depending on Swift
+Configuration directly:
+
+```swift
+.package(
+    url: "https://github.com/apple/swift-configuration",
+    from: "1.0.2",
+    traits: ["CommandLineArguments", "JSON"],
+),
 ```
 
 ## Requirements

@@ -23,7 +23,9 @@ _ = Package(
 	products: [.library(name: "CascadingConfiguration", targets: ["CascadingConfiguration"])],
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-collections", from: "1.3.0"),
-		.package(url: "https://github.com/apple/swift-configuration", from: "1.0.2"),
+		// Enables no trait, so that a package that depends on
+		// `CascadingConfiguration` enables only the traits that it uses
+		.package(url: "https://github.com/apple/swift-configuration", from: "1.0.2", traits: []),
 	],
 	targets: [
 		.target(
