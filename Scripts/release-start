@@ -14,7 +14,7 @@
 #
 # ^(0|[1-9][[:digit:]]*)\.(0|[1-9][[:digit:]]*)\.(0|[1-9][[:digit:]]*)(-(alpha|beta|rc)\.(0|[1-9][[:digit:]]*))?$
 #
-# <title> may contain at most 64 characters, which cannot be control characters
+# <title> may contain at most 64 characters, which cannot be control characters, and cannot begin or end with a space
 #
 # <ref>, if supplied, must be on the main branch; defaults to the tip of the GitHub main branch
 #
