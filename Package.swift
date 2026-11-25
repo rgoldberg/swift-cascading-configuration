@@ -3,8 +3,8 @@
 private import PackageDescription
 
 private let swiftSettings = [
-	// Defines `Configuration 1.0`, the availability that the vendored code from
-	// Swift Configuration uses
+	// Defines `Configuration 1.0`, the availability of Swift Configuration,
+	// marking each declaration that uses Swift Configuration
 	SwiftSetting.enableExperimentalFeature(
 		"AvailabilityMacro=Configuration 1.0:macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0",
 	),

@@ -259,7 +259,7 @@ public extension CascadingProvider {
 		///     cascade scope floor is `0`; ``CascadeScopeFloor/noCascading`` keeps
 		///     the whole base scope.
 		public init(
-			_ provider: any ConfigProvider,
+			_ provider: some ConfigProvider,
 			baseScope: [String] = [],
 			cascadeScopeFloor: CascadeScopeFloor = 0,
 			baseScopeCascadeScopeFloor: CascadeScopeFloor = .noCascading,
