@@ -427,45 +427,44 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `provider name`() {
-		#expect(
-			CascadingProvider(
-				providers: [
-					.init(InMemoryProvider(name: "1st", values: [:])),
-					.init(InMemoryProvider(name: "2nd", values: [:])),
-				],
-			).providerName == "CascadingProvider[providers: InMemoryProvider[1st], InMemoryProvider[2nd]]",
+		let provider = CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(name: "1st", values: [:])),
+				.init(InMemoryProvider(name: "2nd", values: [:])),
+			],
 		)
+		#expect(provider.providerName == "CascadingProvider[providers: InMemoryProvider[1st], InMemoryProvider[2nd]]")
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func description() {
-		#expect(
-			CascadingProvider(
-				providers: [
-					.init(InMemoryProvider(name: "1st", values: [:]), baseScope: ["org", "tool"], cascadeScopeFloor: 1),
-					.init(InMemoryProvider(name: "2nd", values: [:]), baseScopeCascadeScopeFloor: 0),
-				],
-			).description == """
-				CascadingProvider[providers: \
-				UpstreamProvider[provider: InMemoryProvider[1st, 0 values], baseScope: ["org", "tool"], \
-				cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: noCascading], \
-				UpstreamProvider[provider: InMemoryProvider[2nd, 0 values], baseScope: [], \
-				cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: 0]]
-				""",
+		let provider = CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(name: "1st", values: [:]), baseScope: ["org", "tool"], cascadeScopeFloor: 1),
+				.init(InMemoryProvider(name: "2nd", values: [:]), baseScopeCascadeScopeFloor: 0),
+			],
 		)
+		let expected = """
+			CascadingProvider[providers: \
+			UpstreamProvider[provider: InMemoryProvider[1st, 0 values], baseScope: ["org", "tool"], \
+			cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: noCascading], \
+			UpstreamProvider[provider: InMemoryProvider[2nd, 0 values], baseScope: [], \
+			cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: 0]]
+			"""
+		#expect(provider.description == expected)
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func `debug description`() {
-		#expect(
-			CascadingProvider(providers: [.init(InMemoryProvider(name: "1st", values: [:]))]).debugDescription == """
-				CascadingProvider[providers: \
-				UpstreamProvider[provider: InMemoryProvider[1st, 0 values: ], baseScope: [], \
-				cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: noCascading]]
-				""",
-		)
+		let expected = """
+			CascadingProvider[providers: \
+			UpstreamProvider[provider: InMemoryProvider[1st, 0 values: ], baseScope: [], \
+			cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: noCascading]]
+			"""
+		#expect(CascadingProvider(providers: [.init(InMemoryProvider(name: "1st", values: [:]))])
+			.debugDescription == expected)
 	}
 
 	@available(Configuration 1.0, *)

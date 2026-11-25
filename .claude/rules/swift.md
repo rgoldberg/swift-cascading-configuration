@@ -110,7 +110,8 @@ Within this section & all subsections, `X` is a placeholder for any type name.
 
 1. Inlined single-use value, unless the formatted inlined code would be more
    than 1 line longer than the binding & its use (e.g., a 3-line value used in a
-   1-line statement may be inlined into at most 5 lines)
+   1-line statement may be inlined into at most 5 lines), or the value would be
+   a multi-line operand of an expectation macro (see [Testing](#testing))
 2. `let` multiple-use value
 3. `var` multiple-use value
 
@@ -222,3 +223,9 @@ can change the concrete type without breaking callers.
   `ConfigProvider+Bar.swift` → `BarTests.swift`), because `file_name` requires
   each file to declare a type matching its name
 - Use force unwrapping in tests where appropriate
+- Bind each operand of an expectation macro (e.g., `#expect(…)` or
+  `#require(…)`) that would span multiple lines (e.g., a multi-line collection
+  literal, string literal, or call) to a `let` before the macro, but keep each
+  1-line operand inline, because Swift Testing 6.4 reports the source & value of
+  each operand, except only the 1st line, without the value, of a multi-line
+  one; wrapping the condition between operands (e.g., before `==`) is fine
