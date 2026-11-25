@@ -147,10 +147,12 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 /// `CommandLineArgumentsProvider` needs the `CommandLineArguments` trait of
 /// Swift Configuration.
 ///
-/// ## Error handling
+/// ## Watching & errors
 ///
-/// When an upstream provider throws an error, `CascadingProvider` propagates it
-/// immediately instead of trying the next provider or key.
+/// Fetching values, watching values & watching snapshots follow the same
+/// cascade as a synchronous lookup. When an upstream provider throws an error,
+/// `CascadingProvider` propagates it immediately instead of trying the next
+/// provider or key.
 @available(Configuration 1.0, *)
 public struct CascadingProvider: Sendable {
 	/// The upstream providers, in precedence order.
