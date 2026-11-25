@@ -93,7 +93,7 @@ struct CascadingLookupTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `zero context cascade scope floor applies base scope cascade scope floor`() throws {
+	func `context cascade scope floor of 0 applies base scope cascade scope floor`() throws {
 		let recorder = KeyRecordingProvider()
 		_ = try CascadingProvider(
 			providers: [
@@ -144,6 +144,10 @@ struct CascadingLookupTests {
 			["cascadingConfiguration.baseScope.count": 2, "cascadingConfiguration.baseScope.0": "git"],
 			// The base scope claims more components than any context can hold
 			["cascadingConfiguration.baseScope.count": .int(.max)],
+			// The base scope claims a negative number of components
+			["cascadingConfiguration.baseScope.count": -1],
+			// A component of the base scope is not a string
+			["cascadingConfiguration.baseScope.count": 1, "cascadingConfiguration.baseScope.0": 1],
 		] as [[String: ConfigContextValue]],
 	)
 	func `invalid base scope context is ignored`(context: [String: ConfigContextValue]) throws {
