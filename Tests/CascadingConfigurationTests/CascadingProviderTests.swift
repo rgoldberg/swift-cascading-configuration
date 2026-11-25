@@ -144,12 +144,12 @@ struct CascadingProviderTests {
 			(4, nil),
 		] as [(Int?, String?)],
 	)
-	func `scope floor limits cascade`(scopeFloor: Int?, expected: String?) throws {
+	func `cascade scope floor limits cascade`(cascadeScopeFloor: Int?, expected: String?) throws {
 		// The only value is at a key with 1 scope, so the lookup finds it unless
 		// the floor is above 1
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["a.setting": "1 scope"]))])
 		let context: [String: ConfigContextValue] =
-			scopeFloor.map { [CascadingProvider.cascadeScopeFloorContextKey: .int($0)] } ?? [:]
+			cascadeScopeFloor.map { [CascadingProvider.cascadeScopeFloorContextKey: .int($0)] } ?? [:]
 		let key = AbsoluteConfigKey(["a", "b", "c", "setting"], context: context)
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == expected)
 		#expect(try provider.snapshot().value(forKey: key, type: .string).value?.content.asString == expected)
@@ -157,7 +157,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor ignored unless integer`() throws {
+	func `cascade scope floor ignored unless integer`() throws {
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
 		let key = AbsoluteConfigKey(["a", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: "1"])
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == "general")
@@ -165,7 +165,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor removed from upstream context`() throws {
+	func `cascade context removed from upstream context`() throws {
 		let upstream = ContextRecordingProvider()
 		let provider = CascadingProvider(providers: [.init(upstream)])
 		let key = AbsoluteConfigKey(
@@ -186,7 +186,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor through reader`() {
+	func `cascade scope floor through reader`() {
 		let config = ConfigReader(
 			provider: CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))]),
 		)
@@ -197,7 +197,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor limits fetch`() async throws {
+	func `cascade scope floor limits fetch`() async throws {
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
 		let key = AbsoluteConfigKey(["a", "b", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
 		let result = try await provider.fetchValue(forKey: key, type: .string)
@@ -207,7 +207,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor limits watch`() async throws {
+	func `cascade scope floor limits watch`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		let provider = CascadingProvider(providers: [.init(upstream)])
 		let key = AbsoluteConfigKey(["a", "b", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
@@ -232,7 +232,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `upstream scope floor limits only its upstream`() throws {
+	func `upstream cascade scope floor limits only its upstream`() throws {
 		let provider = CascadingProvider(
 			providers: [
 				.init(InMemoryProvider(name: "floored", values: ["setting": "floored"]), cascadeScopeFloor: 1),
@@ -244,7 +244,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `context scope floor overrides upstream scope floor`() throws {
+	func `context cascade scope floor overrides upstream cascade scope floor`() throws {
 		let provider = CascadingProvider(
 			providers: [.init(InMemoryProvider(values: ["setting": "general"]), cascadeScopeFloor: .noCascading)],
 		)
@@ -268,7 +268,7 @@ struct CascadingProviderTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `scope floor stops at no cascading`() throws {
+	func `cascade scope floor stops at no cascading`() throws {
 		let recorder = KeyRecordingProvider()
 		let provider = CascadingProvider(providers: [
 			.init(recorder, baseScope: ["tool"], cascadeScopeFloor: .noCascading),
