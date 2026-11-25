@@ -70,7 +70,7 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 ///
 /// An upstream provider can have a base scope: scopes that are prepended to
 /// every key that it is asked for, like a namespace. Unlike a key prefix (see
-/// `ConfigProvider.prefixKeys(with:)`), a cascade can remove base scopes, but
+/// ``ConfigProvider/prefixKeys(with:)``), a cascade can remove base scopes, but
 /// only down to a separate floor.
 ///
 /// ```swift
@@ -124,15 +124,15 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 ///
 /// `CascadingProvider` removes every entry of the cascade context (the floors &
 /// the base scope) from the context before it queries its upstream providers.
-/// Wrap each other provider in the same `ConfigReader` using
+/// Wrap each other provider in the same ``ConfigReader`` using
 /// ``ConfigProvider/ignoringCascadeContext()``, so that the cascade context
 /// cannot affect its lookups.
 ///
 /// ## Combining with other providers
 ///
-/// `CascadingProvider` is an ordinary provider, so a `ConfigReader` can combine
-/// it with others. A provider that follows it is only consulted after the whole
-/// cascade finds no value:
+/// `CascadingProvider` is an ordinary provider, so a ``ConfigReader`` can
+/// combine it with others. A provider that follows it is only consulted after
+/// the whole cascade finds no value:
 ///
 /// ```swift
 /// let config = ConfigReader(

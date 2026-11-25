@@ -29,9 +29,10 @@ which the package builds & passes all tests, as
 - Keep `CascadingConfiguration` re-exporting Swift Configuration, so that a
   package that depends on `CascadingConfiguration` needs no direct dependency on
   Swift Configuration
-- Link a Swift Configuration symbol in DocC without a `Configuration/` prefix
-  (e.g., ``` ``ConfigProvider/ignoringCascadeContext()`` ```), which the
-  re-export requires
+- Link each mention of a Swift Configuration symbol in DocC, except one that
+  needs a trait (e.g., `JSONSnapshot`), which DocC cannot resolve, without a
+  `Configuration/` prefix (e.g., ``` ``ConfigReader`` ```), which the re-export
+  requires
 - Declare no `platforms` in `Package.swift`; instead, mark each declaration that
   uses Swift Configuration with `@available(Configuration 1.0, *)` (each `@Test`
   function, never its suite, which Swift Testing rejects), so that a package

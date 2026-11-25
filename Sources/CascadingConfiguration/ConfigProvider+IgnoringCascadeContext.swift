@@ -16,9 +16,9 @@ public extension ConfigProvider {
 	/// The cascade context (the cascade scope floor, the base scope cascade scope
 	/// floor & the base scope) is only meaningful to ``CascadingProvider``, which
 	/// removes it before it queries its own upstream providers. Every other
-	/// provider in the same `ConfigReader` receives the key with the cascade
+	/// provider in the same ``ConfigReader`` receives the key with the cascade
 	/// context still in its context, which can change the result of a provider
-	/// that uses the context: `InMemoryProvider`, for example, only returns a
+	/// that uses the context: ``InMemoryProvider``, for example, only returns a
 	/// value whose key has the same context.
 	///
 	/// Apply this method to every provider that you combine with a
