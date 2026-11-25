@@ -5,5 +5,7 @@
 # actionlint 1.7.12
 #
 ---
+# Lists each GitHub-hosted runner label that actionlint does not know, because actionlint accepts an unknown label only
+# as that of a self-hosted runner
 self-hosted-runner:
   labels: [xcode-27]
