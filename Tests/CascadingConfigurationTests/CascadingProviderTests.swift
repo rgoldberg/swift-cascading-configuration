@@ -12,10 +12,10 @@ import Synchronization
 import Testing
 
 /// The bytes of a byte configuration value that the compat test expects.
-private let magic: [UInt8] = [0x6d, 0x61, 0x67, 0x69, 0x63]
+private let magic = [0x6d, 0x61, 0x67, 0x69, 0x63] as [UInt8]
 
 /// The bytes of another byte configuration value that the compat test expects.
-private let magic2: [UInt8] = [0x6d, 0x61, 0x67, 0x69, 0x63, 0x32]
+private let magic2 = [0x6d, 0x61, 0x67, 0x69, 0x63, 0x32] as [UInt8]
 
 struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
@@ -148,8 +148,8 @@ struct CascadingProviderTests {
 		// The only value is at a key with 1 scope, so the lookup finds it unless
 		// the floor is above 1
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["a.setting": "1 scope"]))])
-		let context: [String: ConfigContextValue] =
-			cascadeScopeFloor.map { [CascadingProvider.cascadeScopeFloorContextKey: .int($0)] } ?? [:]
+		let context =
+			cascadeScopeFloor.map { [CascadingProvider.cascadeScopeFloorContextKey: ConfigContextValue.int($0)] } ?? [:]
 		let key = AbsoluteConfigKey(["a", "b", "c", "setting"], context: context)
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == expected)
 		#expect(try provider.snapshot().value(forKey: key, type: .string).value?.content.asString == expected)
@@ -356,7 +356,7 @@ struct CascadingProviderTests {
 			group.addTask {
 				try await provider.watchSnapshot { updates in
 					var iterator = updates.makeAsyncIterator()
-					let key: AbsoluteConfigKey = ["a", "setting"]
+					let key = AbsoluteConfigKey(["a", "setting"])
 					try await future1.fulfill(
 						iterator.next()?.value(forKey: key, type: .string).value?.content.asString,
 					)
