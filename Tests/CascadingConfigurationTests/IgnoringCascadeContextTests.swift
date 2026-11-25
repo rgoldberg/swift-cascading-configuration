@@ -17,11 +17,10 @@ struct IgnoringCascadeContextTests {
 			AbsoluteConfigKey(["foo"]): "bar",
 			AbsoluteConfigKey(["baz"], context: ["environment": "production"]): "qux",
 		])
-		let floorContext = CascadingProvider.baseScopeContext(["tool"])
-			.merging([
-				CascadingProvider.cascadeScopeFloorContextKey: 1,
-				CascadingProvider.baseScopeCascadeScopeFloorContextKey: 0,
-			]) { $1 }
+		let floorContext = [String: ConfigContextValue]
+			.baseScope(["tool"])
+			.cascadeScopeFloor(1)
+			.baseScopeCascadeScopeFloor(0)
 
 		// The in-memory provider only matches a key with the same context, so the
 		// cascade context hides its value

@@ -75,9 +75,7 @@ public import Configuration
 /// config.string(forKey: "a.b.setting")
 ///
 /// // Tries "a.b.setting", then "a.setting"
-/// config.string(
-///     forKey: ConfigKey("a.b.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1]),
-/// )
+/// config.string(forKey: ConfigKey("a.b.setting", context: .cascadeScopeFloor(1)))
 /// ```
 ///
 /// A base scope cascade scope floor is the minimum number of base scopes that a
@@ -86,11 +84,16 @@ public import Configuration
 /// because the cascade removes a base scope only after every other scope.
 /// ``CascadeScopeFloor/noCascading`` (the default) keeps the whole base scope,
 /// while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`,
-/// with base scope `["tool"]`).
+/// with base scope `["tool"]`). A key overrides that floor via its context too
+/// (e.g., `.baseScopeCascadeScopeFloor(0)`).
 ///
-/// A key overrides a base scope via ``baseScopeContext(_:)``: an empty base
-/// scope removes the base scope of every upstream provider, while any other
-/// base scope replaces each base scope that is not empty.
+/// A key overrides a base scope via its context (e.g., `.baseScope([])`): an
+/// empty base scope removes the base scope of every upstream provider, while
+/// any other base scope replaces each base scope that is not empty.
+///
+/// Chain these context functions to set several entries (e.g.,
+/// `.cascadeScopeFloor(1).baseScope(["git"])`), or call them on a context that
+/// holds other entries (e.g., `["environment": "production"].baseScope([])`).
 ///
 /// `CascadingProvider` removes every entry of the cascade context (the floors &
 /// the base scope) from the context before it queries its upstream providers.
@@ -127,7 +130,7 @@ public struct CascadingProvider: Sendable {
 	/// counting base scopes, that a key tried by a cascading lookup keeps. It
 	/// overrides the cascade scope floor of every upstream provider. An entry
 	/// with a non-integer value is ignored, and a negative one behaves like `0`.
-	public static let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
+	static let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
 
 	/// The name of the key context entry that holds a key's base scope cascade
 	/// scope floor.
@@ -137,36 +140,16 @@ public struct CascadingProvider: Sendable {
 	/// scope floor is `0`. It overrides the base scope cascade scope floor of
 	/// every upstream provider whose base scope is not empty. An entry with a
 	/// non-integer value is ignored, and a negative one behaves like `0`.
-	public static let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
+	static let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
 
 	/// The prefix of the names of the key context entries that hold a key's base
 	/// scope.
 	///
-	/// A context value cannot be an array, so ``baseScopeContext(_:)`` stores the
-	/// base scope as indexed entries (e.g.,
-	/// `cascadingConfiguration.baseScope.count`,
+	/// A context value cannot be an array, so `baseScope(_:)` stores the base
+	/// scope as indexed entries (e.g., `cascadingConfiguration.baseScope.count`,
 	/// `cascadingConfiguration.baseScope.0` &
 	/// `cascadingConfiguration.baseScope.1`).
 	static let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
-
-	/// Returns the key context entries that override the base scope of a key.
-	///
-	/// An empty base scope removes the base scope of every upstream provider,
-	/// while any other base scope replaces each base scope that is not empty:
-	///
-	/// ```swift
-	/// // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-	/// config.string(forKey: ConfigKey("pager", context: CascadingProvider.baseScopeContext([])))
-	/// ```
-	///
-	/// - Parameter baseScope: The base scope of the key.
-	/// - Returns: The context entries that hold `baseScope`.
-	public static func baseScopeContext(_ baseScope: [String]) -> [String: ConfigContextValue] {
-		baseScope.enumerated()
-			.reduce(into: ["\(baseScopeContextKeyPrefix).count": .int(baseScope.count)]) { context, element in
-				context["\(baseScopeContextKeyPrefix).\(element.offset)"] = .string(element.element)
-			}
-	}
 
 	/// The upstream providers, in precedence order.
 	private let upstreams: [UpstreamProvider]

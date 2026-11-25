@@ -61,6 +61,10 @@ deployment_target:
 file_length:
   ignore_comment_only_lines: true
   warning: 500
+file_name:
+  # Each file that only extends a sugared type (e.g., `[String: ConfigContextValue]`), which file_name cannot match to
+  # the file's name, and which SwiftFormat sugars even if written unsugared
+  excluded: [Dictionary+CascadeContext.swift]
 file_types_order:
   order:
   - main_type

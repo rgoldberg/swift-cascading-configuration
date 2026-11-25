@@ -67,15 +67,21 @@ floor: the base scope cascade scope floor, the minimum number of base scopes
 that a key tried by the cascade keeps. That floor applies only if the cascade
 scope floor (see [Limiting the Cascade](#limiting-the-cascade)) is `0`; its
 default, `.noCascading`, keeps the whole base scope, while `0` lets the cascade
-remove it (e.g., `0` reaches `PAGER` for `pager`, with base scope `["tool"]`).
+remove it (e.g., `0` reaches `PAGER` for `pager`, with base scope `["tool"]`). A
+key overrides that floor via its context:
 
-A key overrides the base scope of every upstream provider via
-`CascadingProvider.baseScopeContext(_:)`: an empty base scope removes every base
-scope, while any other base scope replaces each base scope that is not empty:
+```swift
+// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
+config.string(forKey: ConfigKey("pager", context: .baseScopeCascadeScopeFloor(0)))
+```
+
+A key overrides the base scope of every upstream provider via its context too:
+an empty base scope removes every base scope, while any other base scope
+replaces each base scope that is not empty:
 
 ```swift
 // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-config.string(forKey: ConfigKey("pager", context: CascadingProvider.baseScopeContext([])))
+config.string(forKey: ConfigKey("pager", context: .baseScope([])))
 ```
 
 ### Limiting the Cascade
@@ -87,8 +93,12 @@ has its own floor, which a key overrides via its context:
 
 ```swift
 // Tries "a.b.setting", then "a.setting"
-config.string(forKey: ConfigKey("a.b.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1]))
+config.string(forKey: ConfigKey("a.b.setting", context: .cascadeScopeFloor(1)))
 ```
+
+Chain these context functions to set several entries (e.g.,
+`.cascadeScopeFloor(1).baseScope(["git"])`), or call them on a context that
+holds other entries (e.g., `["environment": "production"].baseScope([])`).
 
 ### Combining with Other Providers
 

@@ -10,12 +10,15 @@
 ### Limiting the cascade
 
 - ``CascadeScopeFloor``
-- ``cascadeScopeFloorContextKey``
-- ``baseScopeCascadeScopeFloorContextKey``
+- ``Swift/Dictionary/cascadeScopeFloor(_:)-type.method``
+- ``Swift/Dictionary/cascadeScopeFloor(_:)-method``
+- ``Swift/Dictionary/baseScopeCascadeScopeFloor(_:)-type.method``
+- ``Swift/Dictionary/baseScopeCascadeScopeFloor(_:)-method``
 
 ### Overriding the base scope
 
-- ``baseScopeContext(_:)``
+- ``Swift/Dictionary/baseScope(_:)-type.method``
+- ``Swift/Dictionary/baseScope(_:)-method``
 
 ### Combining with other providers
 

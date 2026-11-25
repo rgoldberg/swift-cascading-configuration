@@ -33,9 +33,7 @@ public extension ConfigProvider {
 	/// ])
 	///
 	/// // The overrides provider looks up "a.setting" with an empty context
-	/// let value = config.string(
-	///     forKey: ConfigKey("a.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1]),
-	/// )
+	/// let value = config.string(forKey: ConfigKey("a.setting", context: .cascadeScopeFloor(1)))
 	/// ```
 	///
 	/// - Returns: A provider which removes the cascade context from the context

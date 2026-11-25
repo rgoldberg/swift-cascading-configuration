@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-import CascadingConfiguration
+@testable import CascadingConfiguration
 import ConfigurationTesting
 import Synchronization
 import Testing
@@ -170,15 +170,15 @@ struct CascadingProviderTests {
 		let provider = CascadingProvider(providers: [.init(upstream)])
 		let key = AbsoluteConfigKey(
 			["a", "setting"],
-			context: CascadingProvider.baseScopeContext(["tool"])
-				.merging([
-					CascadingProvider.cascadeScopeFloorContextKey: 1,
-					CascadingProvider.baseScopeCascadeScopeFloorContextKey: 0,
-					"environment": "production",
-					// Not in the cascade context, despite sharing its name with the base
-					// scope entries
-					"baseScope.0": "kept",
-				]) { $1 },
+			context: [
+				"environment": "production",
+				// Not in the cascade context, despite sharing its name with the base
+				// scope entries
+				"baseScope.0": "kept",
+			]
+				.baseScope(["tool"])
+				.cascadeScopeFloor(1)
+				.baseScopeCascadeScopeFloor(0),
 		)
 		_ = try provider.value(forKey: key, type: .string)
 		#expect(upstream.contexts.withLock(\.self) == [["baseScope.0": "kept", "environment": "production"]])
@@ -191,7 +191,7 @@ struct CascadingProviderTests {
 			provider: CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))]),
 		)
 		#expect(config.string(forKey: "a.setting") == "general")
-		let limitedKey = ConfigKey("a.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
+		let limitedKey = ConfigKey("a.setting", context: .cascadeScopeFloor(1))
 		#expect(config.string(forKey: limitedKey) == nil)
 	}
 
@@ -199,7 +199,7 @@ struct CascadingProviderTests {
 	@Test
 	func `cascade scope floor limits fetch`() async throws {
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
-		let key = AbsoluteConfigKey(["a", "b", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
+		let key = AbsoluteConfigKey(["a", "b", "setting"], context: .cascadeScopeFloor(1))
 		let result = try await provider.fetchValue(forKey: key, type: .string)
 		#expect(result.value == nil)
 		#expect(result.encodedKey == "a.b.setting")
@@ -210,7 +210,7 @@ struct CascadingProviderTests {
 	func `cascade scope floor limits watch`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		let provider = CascadingProvider(providers: [.init(upstream)])
-		let key = AbsoluteConfigKey(["a", "b", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
+		let key = AbsoluteConfigKey(["a", "b", "setting"], context: .cascadeScopeFloor(1))
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let future1 = TestFuture<String?>(name: "future1")
 			let future2 = TestFuture<String?>(name: "future2")
@@ -248,22 +248,8 @@ struct CascadingProviderTests {
 		let provider = CascadingProvider(
 			providers: [.init(InMemoryProvider(values: ["setting": "general"]), cascadeScopeFloor: .noCascading)],
 		)
-		let key = AbsoluteConfigKey(["a", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: 0])
+		let key = AbsoluteConfigKey(["a", "setting"], context: .cascadeScopeFloor(0))
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == "general")
-	}
-
-	@available(Configuration 1.0, *)
-	@Test
-	func `base scope context entries`() {
-		#expect(CascadingProvider.baseScopeContext([]) == ["cascadingConfiguration.baseScope.count": 0])
-		#expect(
-			CascadingProvider.baseScopeContext(["org", "tool"])
-				== [
-					"cascadingConfiguration.baseScope.count": 2,
-					"cascadingConfiguration.baseScope.0": "org",
-					"cascadingConfiguration.baseScope.1": "tool",
-				],
-		)
 	}
 
 	@available(Configuration 1.0, *)
