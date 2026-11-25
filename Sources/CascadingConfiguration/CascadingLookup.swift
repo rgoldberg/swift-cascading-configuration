@@ -77,10 +77,10 @@ func cascadingLookups(
 ///   result if no lookup finds a value.
 /// - Throws: The 1st error thrown by the closure.
 @available(Configuration 1.0, *)
-func cascadingValue(
+func cascadingValue<LookUpError: Error>(
 	of lookups: [CascadingLookup],
-	lookUp: (_ lookup: CascadingLookup) throws -> LookupResult,
-) throws -> LookupResult {
+	lookUp: (_ lookup: CascadingLookup) throws(LookUpError) -> LookupResult,
+) throws(LookUpError) -> LookupResult {
 	var lookups = lookups[...]
 	// There is at least 1 upstream provider, and each one is asked for at least 1
 	// key
