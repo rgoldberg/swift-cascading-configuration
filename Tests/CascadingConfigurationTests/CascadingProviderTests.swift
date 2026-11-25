@@ -256,9 +256,11 @@ struct CascadingProviderTests {
 	@Test
 	func `cascade scope floor stops at no cascading`() throws {
 		let recorder = KeyRecordingProvider()
-		let provider = CascadingProvider(providers: [
-			.init(recorder, baseScope: ["tool"], cascadeScopeFloor: .noCascading),
-		])
+		let provider = CascadingProvider(
+			providers: [
+				.init(recorder, baseScope: ["tool"], cascadeScopeFloor: .noCascading),
+			],
+		)
 		_ = try provider.value(forKey: ["install", "limit"], type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit"])
 	}

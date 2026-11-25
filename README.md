@@ -112,11 +112,13 @@ other provider in the same `ConfigReader` with `ignoringCascadeContext()`, so
 that the cascade context cannot affect its lookups:
 
 ```swift
-let config = ConfigReader(providers: [
-    CommandLineArgumentsProvider().ignoringCascadeContext(), // Exact keys only
-    CascadingProvider(providers: [.init(env), .init(userFile)]), // Cascades across both
-    CascadingProvider(providers: [.init(defaultsFile)]), // Cascades after the above find nothing
-])
+let config = ConfigReader(
+    providers: [
+        CommandLineArgumentsProvider().ignoringCascadeContext(), // Exact keys only
+        CascadingProvider(providers: [.init(env), .init(userFile)]), // Cascades across both
+        CascadingProvider(providers: [.init(defaultsFile)]), // Cascades after the above find nothing
+    ],
+)
 ```
 
 `CommandLineArgumentsProvider` needs the `CommandLineArguments` trait of Swift

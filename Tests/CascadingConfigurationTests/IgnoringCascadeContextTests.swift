@@ -13,10 +13,12 @@ struct IgnoringCascadeContextTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `ignoring cascade context`() throws {
-		let upstream = InMemoryProvider(values: [
-			.init(["foo"]): "bar",
-			.init(["baz"], context: ["environment": "production"]): "qux",
-		])
+		let upstream = InMemoryProvider(
+			values: [
+				.init(["foo"]): "bar",
+				.init(["baz"], context: ["environment": "production"]): "qux",
+			],
+		)
 		let floorContext = [String: ConfigContextValue]
 			.baseScope(["tool"])
 			.cascadeScopeFloor(1)

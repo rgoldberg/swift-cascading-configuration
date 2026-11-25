@@ -135,11 +135,13 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 /// cascade finds no value:
 ///
 /// ```swift
-/// let config = ConfigReader(providers: [
-///     CommandLineArgumentsProvider().ignoringCascadeContext(),          // Exact keys only
-///     CascadingProvider(providers: [.init(env), .init(userFile)]),      // Cascades across both
-///     CascadingProvider(providers: [.init(defaultsFile)]),              // Cascades after the above find nothing
-/// ])
+/// let config = ConfigReader(
+///     providers: [
+///         CommandLineArgumentsProvider().ignoringCascadeContext(),          // Exact keys only
+///         CascadingProvider(providers: [.init(env), .init(userFile)]),      // Cascades across both
+///         CascadingProvider(providers: [.init(defaultsFile)]),              // Cascades after the above find nothing
+///     ],
+/// )
 /// ```
 ///
 /// `CommandLineArgumentsProvider` needs the `CommandLineArguments` trait of

@@ -27,10 +27,12 @@ public extension ConfigProvider {
 	/// the provider starts to use the context:
 	///
 	/// ```swift
-	/// let config = ConfigReader(providers: [
-	///     overridesProvider.ignoringCascadeContext(),
-	///     CascadingProvider(providers: [.init(envProvider), .init(fileProvider)]),
-	/// ])
+	/// let config = ConfigReader(
+	///     providers: [
+	///         overridesProvider.ignoringCascadeContext(),
+	///         CascadingProvider(providers: [.init(envProvider), .init(fileProvider)]),
+	///     ],
+	/// )
 	///
 	/// // The overrides provider looks up "a.setting" with an empty context
 	/// let value = config.string(forKey: .init("a.setting", context: .cascadeScopeFloor(1)))
