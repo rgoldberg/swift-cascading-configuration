@@ -508,7 +508,9 @@ private func withTargetsWatchingValue<Return: ~Copyable>(
 	targets: ArraySlice<(provider: any ConfigProvider, key: AbsoluteConfigKey)>,
 	updateSequences: inout [any AsyncSequence<Result<LookupResult, any Error>, Never> & Sendable],
 	type: ConfigType,
-	body: ([any AsyncSequence<Result<LookupResult, any Error>, Never> & Sendable]) async throws -> Return,
+	body: (
+		_ updateSequences: [any AsyncSequence<Result<LookupResult, any Error>, Never> & Sendable],
+	) async throws -> Return,
 ) async throws -> Return {
 	if let target = targets.first {
 		try await target.provider.watchValue(forKey: target.key, type: type) { updates in
@@ -544,7 +546,7 @@ private func withTargetsWatchingValue<Return: ~Copyable>(
 private func withProvidersWatchingSnapshot<Return: ~Copyable>(
 	providers: ArraySlice<any ConfigProvider>,
 	updateSequences: inout [any AsyncSequence<any ConfigSnapshot, Never> & Sendable],
-	body: ([any AsyncSequence<any ConfigSnapshot, Never> & Sendable]) async throws -> Return,
+	body: (_ updateSequences: [any AsyncSequence<any ConfigSnapshot, Never> & Sendable]) async throws -> Return,
 ) async throws -> Return {
 	if let provider = providers.first {
 		try await provider.watchSnapshot { updates in
