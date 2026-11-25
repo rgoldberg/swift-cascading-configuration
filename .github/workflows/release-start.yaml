@@ -30,6 +30,8 @@ jobs:
   validate-inputs:
     if: ${{!github.event.repository.fork}}
     runs-on: xcode-27
+    permissions:
+      actions: read
     outputs:
       commit_sha: ${{steps.resolve-sha.outputs.commit_sha}}
     steps:
@@ -97,6 +99,30 @@ jobs:
         commit_sha="$(git rev-parse HEAD)"
         readonly commit_sha
         printf $'commit_sha=%s\n' "${commit_sha}" >>"${GITHUB_OUTPUT}"
+
+    - name: 🚦 Reject commit whose CI did not succeed
+      env:
+        COMMIT_SHA: ${{steps.resolve-sha.outputs.commit_sha}}
+        DEFAULT_BRANCH: ${{github.event.repository.default_branch}}
+        GH_REPO: ${{github.repository}}
+        GH_TOKEN: ${{github.token}}
+      run: |
+        # The latest CI run of the commit on the default branch (e.g., a push or schedule run), which has no conclusion
+        # until it completes
+        conclusion="$(
+          gh run list\
+            -c "${COMMIT_SHA}"\
+            -w ci.yaml\
+            -b "${DEFAULT_BRANCH}"\
+            -L 1\
+            --json conclusion\
+            -q '.[0].conclusion'
+        )"
+        readonly conclusion
+        if [[ "${conclusion}" != success ]]; then
+          printf $'::error::CI did not succeed for %s\n' "${COMMIT_SHA}" >&2
+          exit 8
+        fi
 
   release-start:
     if: ${{!github.event.repository.fork}}

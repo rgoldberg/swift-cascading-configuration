@@ -18,6 +18,8 @@
 #
 # <ref>, if supplied, must be on the main branch; defaults to the tip of the GitHub main branch
 #
+# The latest CI run of <ref> on the main branch must have succeeded
+#
 
 . "${0:A:h}/_setup-script"
 
