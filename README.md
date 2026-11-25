@@ -17,6 +17,10 @@ specific keys when its upstream providers have no value for the requested key
 (e.g., `a.b.setting`, then `a.setting`, then `setting`), so that a setting can
 be set once for every scope, then overridden for a specific scope.
 
+The [API documentation](
+  https://swiftpackageindex.com/ro-ss/swift-cascading-configuration/documentation/cascadingconfiguration
+) describes every public symbol.
+
 ## Usage
 
 ```swift
