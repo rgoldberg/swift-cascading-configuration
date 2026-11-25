@@ -8,6 +8,33 @@
 
 public import Configuration
 
+/// The name of the key context entry that holds a key's cascade scope floor.
+///
+/// The cascade scope floor is an integer: the minimum number of scopes, not
+/// counting base scopes, that a key tried by a cascading lookup keeps. It
+/// overrides the cascade scope floor of every upstream provider. An entry with
+/// a non-integer value is ignored, and a negative one behaves like `0`.
+let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
+
+/// The name of the key context entry that holds a key's base scope cascade
+/// scope floor.
+///
+/// The base scope cascade scope floor is an integer: the minimum number of base
+/// scopes that a key tried by a cascading lookup keeps, if its cascade scope
+/// floor is `0`. It overrides the base scope cascade scope floor of every
+/// upstream provider whose base scope is not empty. An entry with a non-integer
+/// value is ignored, and a negative one behaves like `0`.
+let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
+
+/// The prefix of the names of the key context entries that hold a key's base
+/// scope.
+///
+/// A context value cannot be an array, so `baseScope(_:)` stores the base scope
+/// as indexed entries (e.g., `cascadingConfiguration.baseScope.count`,
+/// `cascadingConfiguration.baseScope.0` &
+/// `cascadingConfiguration.baseScope.1`).
+let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
+
 /// A configuration provider that falls back to less specific keys when its
 /// upstream providers have no value for the requested key.
 ///
@@ -124,33 +151,6 @@ public import Configuration
 /// immediately instead of trying the next provider or key.
 @available(Configuration 1.0, *)
 public struct CascadingProvider: Sendable {
-	/// The name of the key context entry that holds a key's cascade scope floor.
-	///
-	/// The cascade scope floor is an integer: the minimum number of scopes, not
-	/// counting base scopes, that a key tried by a cascading lookup keeps. It
-	/// overrides the cascade scope floor of every upstream provider. An entry
-	/// with a non-integer value is ignored, and a negative one behaves like `0`.
-	static let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
-
-	/// The name of the key context entry that holds a key's base scope cascade
-	/// scope floor.
-	///
-	/// The base scope cascade scope floor is an integer: the minimum number of
-	/// base scopes that a key tried by a cascading lookup keeps, if its cascade
-	/// scope floor is `0`. It overrides the base scope cascade scope floor of
-	/// every upstream provider whose base scope is not empty. An entry with a
-	/// non-integer value is ignored, and a negative one behaves like `0`.
-	static let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
-
-	/// The prefix of the names of the key context entries that hold a key's base
-	/// scope.
-	///
-	/// A context value cannot be an array, so `baseScope(_:)` stores the base
-	/// scope as indexed entries (e.g., `cascadingConfiguration.baseScope.count`,
-	/// `cascadingConfiguration.baseScope.0` &
-	/// `cascadingConfiguration.baseScope.1`).
-	static let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
-
 	/// The upstream providers, in precedence order.
 	private let upstreams: [UpstreamProvider]
 

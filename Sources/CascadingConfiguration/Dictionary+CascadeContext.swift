@@ -77,7 +77,7 @@ public extension [String: ConfigContextValue] {
 	/// - Returns: This key context, with `floor` replacing any cascade scope
 	///   floor.
 	func cascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
-		merging([CascadingProvider.cascadeScopeFloorContextKey: .int(floor.rawValue)]) { $1 }
+		merging([cascadeScopeFloorContextKey: .int(floor.rawValue)]) { $1 }
 	}
 
 	/// Returns this key context with a base scope cascade scope floor that
@@ -89,7 +89,7 @@ public extension [String: ConfigContextValue] {
 	/// - Returns: This key context, with `floor` replacing any base scope cascade
 	///   scope floor.
 	func baseScopeCascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
-		merging([CascadingProvider.baseScopeCascadeScopeFloorContextKey: .int(floor.rawValue)]) { $1 }
+		merging([baseScopeCascadeScopeFloorContextKey: .int(floor.rawValue)]) { $1 }
 	}
 
 	/// Returns this key context with a base scope that overrides that of upstream
@@ -101,7 +101,7 @@ public extension [String: ConfigContextValue] {
 	/// - Parameter baseScope: The base scope of the key.
 	/// - Returns: This key context, with `baseScope` replacing any base scope.
 	func baseScope(_ baseScope: [String]) -> Self {
-		let prefix = "\(CascadingProvider.baseScopeContextKeyPrefix)."
+		let prefix = "\(baseScopeContextKeyPrefix)."
 		return baseScope.enumerated()
 			.reduce(into: filter { !$0.key.hasPrefix(prefix) }) { context, element in
 				context["\(prefix)\(element.offset)"] = .string(element.element)

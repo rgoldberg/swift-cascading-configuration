@@ -149,7 +149,7 @@ struct CascadingProviderTests {
 		// the floor is above 1
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["a.setting": "1 scope"]))])
 		let context =
-			cascadeScopeFloor.map { [CascadingProvider.cascadeScopeFloorContextKey: ConfigContextValue.int($0)] } ?? [:]
+			cascadeScopeFloor.map { [cascadeScopeFloorContextKey: ConfigContextValue.int($0)] } ?? [:]
 		let key = AbsoluteConfigKey(["a", "b", "c", "setting"], context: context)
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == expected)
 		#expect(try provider.snapshot().value(forKey: key, type: .string).value?.content.asString == expected)
@@ -159,7 +159,7 @@ struct CascadingProviderTests {
 	@Test
 	func `cascade scope floor ignored unless integer`() throws {
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
-		let key = AbsoluteConfigKey(["a", "setting"], context: [CascadingProvider.cascadeScopeFloorContextKey: "1"])
+		let key = AbsoluteConfigKey(["a", "setting"], context: [cascadeScopeFloorContextKey: "1"])
 		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == "general")
 	}
 
