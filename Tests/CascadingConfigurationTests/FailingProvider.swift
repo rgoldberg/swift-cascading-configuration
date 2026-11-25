@@ -10,12 +10,15 @@ import Configuration
 
 /// An upstream provider that throws for 1 key & has no value for any other.
 @available(Configuration 1.0, *)
-struct FailingProvider: ConfigProvider {
+struct FailingProvider {
 	struct TestError: Error {}
 
 	/// The key whose lookups throw.
 	var failingKey: AbsoluteConfigKey
+}
 
+@available(Configuration 1.0, *)
+extension FailingProvider: ConfigProvider {
 	var providerName: String {
 		"FailingProvider"
 	}

@@ -11,14 +11,17 @@ import Configuration
 /// A configuration snapshot that falls back to less specific keys when its
 /// upstream snapshots have no value for the requested key.
 @available(Configuration 1.0, *)
-struct CascadingSnapshot: ConfigSnapshot {
+struct CascadingSnapshot {
 	/// The upstream providers whose snapshots these are, in precedence order, for
 	/// their settings.
 	var upstreams: [CascadingProvider.UpstreamProvider]
 
 	/// The upstream snapshots, in precedence order.
 	var snapshots: [any ConfigSnapshot]
+}
 
+@available(Configuration 1.0, *)
+extension CascadingSnapshot: ConfigSnapshot {
 	/// The human-readable name of the snapshot, which matches that of the
 	/// provider that created it.
 	var providerName: String {

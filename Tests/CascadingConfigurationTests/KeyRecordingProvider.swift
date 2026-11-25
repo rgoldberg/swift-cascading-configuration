@@ -12,10 +12,13 @@ import Synchronization
 /// An upstream provider that records every key that it is asked for, in dot
 /// notation, and has no values.
 @available(Configuration 1.0, *)
-final class KeyRecordingProvider: ConfigProvider {
+final class KeyRecordingProvider {
 	/// The keys looked up so far, in lookup order.
 	let keys = Mutex<[String]>([])
+}
 
+@available(Configuration 1.0, *)
+extension KeyRecordingProvider: ConfigProvider {
 	var providerName: String {
 		"KeyRecordingProvider"
 	}

@@ -12,10 +12,13 @@ import Synchronization
 /// An upstream provider that has no values & records the context of every key
 /// that it is asked for.
 @available(Configuration 1.0, *)
-final class ContextRecordingProvider: ConfigProvider {
+final class ContextRecordingProvider {
 	/// The contexts of the keys looked up so far, in lookup order.
 	let contexts = Mutex<[[String: ConfigContextValue]]>([])
+}
 
+@available(Configuration 1.0, *)
+extension ContextRecordingProvider: ConfigProvider {
 	var providerName: String {
 		"ContextRecordingProvider"
 	}
