@@ -147,7 +147,7 @@ public struct CascadingProvider: Sendable {
 	/// `cascadingConfiguration.baseScope.count`,
 	/// `cascadingConfiguration.baseScope.0` &
 	/// `cascadingConfiguration.baseScope.1`).
-	public static let baseScopeContextKey = "cascadingConfiguration.baseScope"
+	static let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 
 	/// Returns the key context entries that override the base scope of a key.
 	///
@@ -162,9 +162,10 @@ public struct CascadingProvider: Sendable {
 	/// - Parameter baseScope: The base scope of the key.
 	/// - Returns: The context entries that hold `baseScope`.
 	public static func baseScopeContext(_ baseScope: [String]) -> [String: ConfigContextValue] {
-		baseScope.enumerated().reduce(into: ["\(baseScopeContextKey).count": .int(baseScope.count)]) { context, element in
-			context["\(baseScopeContextKey).\(element.offset)"] = .string(element.element)
-		}
+		baseScope.enumerated()
+			.reduce(into: ["\(baseScopeContextKeyPrefix).count": .int(baseScope.count)]) { context, element in
+				context["\(baseScopeContextKeyPrefix).\(element.offset)"] = .string(element.element)
+			}
 	}
 
 	/// The upstream providers, in precedence order.
@@ -425,7 +426,7 @@ extension CascadingProvider {
 		let baseScopeCascadeScopeFloor = CascadeScopeFloor(
 			contextValue: context.removeValue(forKey: baseScopeCascadeScopeFloorContextKey),
 		)
-		let baseScopePrefix = "\(baseScopeContextKey)."
+		let baseScopePrefix = "\(baseScopeContextKeyPrefix)."
 		let baseScopeEntries = context.filter { $0.key.hasPrefix(baseScopePrefix) }
 		context = context.filter { !$0.key.hasPrefix(baseScopePrefix) }
 		return .init(

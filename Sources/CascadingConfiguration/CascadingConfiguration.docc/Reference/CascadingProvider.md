@@ -16,7 +16,6 @@
 ### Overriding the base scope
 
 - ``baseScopeContext(_:)``
-- ``baseScopeContextKey``
 
 ### Combining with other providers
 
