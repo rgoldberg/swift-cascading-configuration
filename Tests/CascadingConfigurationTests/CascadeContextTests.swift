@@ -33,30 +33,33 @@ struct CascadeContextTests {
 	@Test
 	func `base scope entries`() {
 		#expect([String: ConfigContextValue].baseScope([]) == ["cascadingConfiguration.baseScope.count": 0])
-		let expected = [
-			"cascadingConfiguration.baseScope.count": ConfigContextValue.int(2),
-			"cascadingConfiguration.baseScope.0": "org",
-			"cascadingConfiguration.baseScope.1": "tool",
-		]
-		#expect([String: ConfigContextValue].baseScope(["org", "tool"]) == expected)
+		#expect(
+			[String: ConfigContextValue].baseScope(["org", "tool"])
+				== [
+					"cascadingConfiguration.baseScope.count": 2,
+					"cascadingConfiguration.baseScope.0": "org",
+					"cascadingConfiguration.baseScope.1": "tool",
+				],
+		)
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func `entries replace their own kind only`() {
-		let context = ["environment": "production", "cascadingConfiguration.baseScopeCount": "kept"]
-			.cascadeScopeFloor(2)
-			.baseScope(["org", "tool"])
-			.cascadeScopeFloor(1)
-			// Leaves no entry of the replaced base scope
-			.baseScope(["git"])
-		let expected = [
-			"environment": ConfigContextValue.string("production"),
-			"cascadingConfiguration.baseScopeCount": "kept",
-			"cascadingConfiguration.cascadeScopeFloor": 1,
-			"cascadingConfiguration.baseScope.count": 1,
-			"cascadingConfiguration.baseScope.0": "git",
-		]
-		#expect(context == expected)
+		#expect(
+			["environment": "production", "cascadingConfiguration.baseScopeCount": "kept"]
+				.cascadeScopeFloor(2)
+				.baseScope(["org", "tool"])
+				.cascadeScopeFloor(1)
+				// Leaves no entry of the replaced base scope
+				.baseScope(["git"])
+				== [
+					"environment": "production",
+					"cascadingConfiguration.baseScopeCount": "kept",
+					"cascadingConfiguration.cascadeScopeFloor": 1,
+					"cascadingConfiguration.baseScope.count": 1,
+					"cascadingConfiguration.baseScope.0": "git",
+				],
+		)
 	}
 }
