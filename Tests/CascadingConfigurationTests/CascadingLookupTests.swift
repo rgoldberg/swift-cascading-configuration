@@ -72,6 +72,27 @@ struct CascadingLookupTests {
 	@available(Configuration 1.0, *)
 	@Test(
 		arguments: [
+			// A non-integer floor is ignored
+			("0", ["tool.install.limit", "tool.limit"]),
+			// A negative floor behaves like 0
+			(-1, ["tool.install.limit", "tool.limit", "limit"]),
+		] as [(ConfigContextValue, [String])],
+	)
+	func `base scope cascade scope floor context entry is validated`(
+		floor: ConfigContextValue,
+		expected: [String],
+	) throws {
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])]).value(
+			forKey: .init(["install", "limit"], context: ["cascadingConfiguration.baseScopeCascadeScopeFloor": floor]),
+			type: .string,
+		)
+		#expect(recorder.keys.withLock(\.self) == expected)
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(
+		arguments: [
 			(nil, 1),
 			(1, 0),
 			(.noCascading, 0),
