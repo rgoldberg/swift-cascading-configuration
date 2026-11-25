@@ -11,7 +11,9 @@ import Configuration
 /// An upstream provider that throws for 1 key & has no value for any other.
 @available(Configuration 1.0, *)
 struct FailingProvider {
-	struct TestError: Error {}
+	enum TestError: Error {
+		case failure
+	}
 
 	/// The key whose lookups throw.
 	var failingKey: AbsoluteConfigKey
@@ -25,7 +27,7 @@ extension FailingProvider: ConfigProvider {
 
 	func value(forKey key: AbsoluteConfigKey, type _: ConfigType) throws(TestError) -> LookupResult {
 		guard key != failingKey else {
-			throw .init()
+			throw .failure
 		}
 		return .init(encodedKey: key.description, value: nil)
 	}
