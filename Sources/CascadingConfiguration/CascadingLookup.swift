@@ -47,11 +47,11 @@ func cascadingLookups(
 		let floor =
 			cascadeScopeFloor.rawValue > 0 || baseScope.isEmpty
 				? cascadeScopeFloor.increased(by: baseScope.count).rawValue
-				: Swift.min(
+				: min(
 					(cascadeContext.baseScopeCascadeScopeFloor ?? upstream.baseScopeCascadeScopeFloor).rawValue,
 					baseScope.count,
 				)
-		return (scope: fullScope, floor: Swift.min(floor, fullScope.count))
+		return (scope: fullScope, floor: min(floor, fullScope.count))
 	}
 	let stepCount = plans.lazy.map { $0.scope.count - $0.floor }.max() ?? 0
 	return (0...stepCount)

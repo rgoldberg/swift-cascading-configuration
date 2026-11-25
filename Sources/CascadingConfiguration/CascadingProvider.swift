@@ -184,7 +184,7 @@ public extension CascadingProvider {
 			guard case let .int(rawValue) = contextValue else {
 				return nil
 			}
-			self.init(validRawValue: Swift.max(rawValue, 0))
+			self.init(validRawValue: max(rawValue, 0))
 		}
 
 		private init(validRawValue: Int) {
