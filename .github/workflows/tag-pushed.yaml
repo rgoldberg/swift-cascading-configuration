@@ -44,7 +44,7 @@ jobs:
           exit 2
         fi
 
-    - name: 🏷 Exit if not a version tag
+    - name: 🏷 Reject non-version tag
       run: |
         readonly number='(0|[1-9][[:digit:]]*)'
         if [[ ! "${GITHUB_REF_NAME}" =~ "^${number}\.${number}\.${number}(-(alpha|beta|rc)\.${number})?$" ]]; then
