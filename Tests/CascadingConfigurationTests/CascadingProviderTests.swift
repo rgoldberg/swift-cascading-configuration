@@ -451,15 +451,41 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func description() {
-		let provider = CascadingProvider(providers: [.init(InMemoryProvider(name: "1st", values: [:]))])
-		#expect(provider.description == "CascadingProvider[providers: InMemoryProvider[1st, 0 values]]")
+		let provider = CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(name: "1st", values: [:]), baseScope: ["org", "tool"], cascadeScopeFloor: 1),
+				.init(InMemoryProvider(name: "2nd", values: [:]), baseScopeCascadeScopeFloor: 0),
+			],
+		)
+		#expect(
+			provider.description == """
+				CascadingProvider[providers: \
+				UpstreamProvider[provider: InMemoryProvider[1st, 0 values], baseScope: ["org", "tool"], \
+				cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: noCascading], \
+				UpstreamProvider[provider: InMemoryProvider[2nd, 0 values], baseScope: [], \
+				cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: 0]]
+				""",
+		)
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func `debug description`() {
 		let provider = CascadingProvider(providers: [.init(InMemoryProvider(name: "1st", values: [:]))])
-		#expect(provider.debugDescription == "CascadingProvider[providers: InMemoryProvider[1st, 0 values: ]]")
+		#expect(
+			provider.debugDescription == """
+				CascadingProvider[providers: \
+				UpstreamProvider[provider: InMemoryProvider[1st, 0 values: ], baseScope: [], \
+				cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: noCascading]]
+				""",
+		)
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `cascade scope floor description`() {
+		#expect((1 as CascadingProvider.CascadeScopeFloor).description == "1")
+		#expect(CascadingProvider.CascadeScopeFloor.noCascading.description == "noCascading")
 	}
 
 	// Swift Testing has no exit tests on iOS, tvOS, watchOS, or visionOS

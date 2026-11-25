@@ -223,6 +223,15 @@ extension CascadingProvider.CascadeScopeFloor: ExpressibleByIntegerLiteral {
 	}
 }
 
+@available(Configuration 1.0, *)
+extension CascadingProvider.CascadeScopeFloor: CustomStringConvertible {
+	/// The raw value of the floor (e.g., `1`), or `noCascading` for
+	/// ``noCascading``.
+	public var description: String {
+		self == .noCascading ? "noCascading" : "\(rawValue)"
+	}
+}
+
 // MARK: - Upstream provider
 
 @available(Configuration 1.0, *)
@@ -269,6 +278,38 @@ public extension CascadingProvider {
 			self.cascadeScopeFloor = cascadeScopeFloor
 			self.baseScopeCascadeScopeFloor = baseScopeCascadeScopeFloor
 		}
+	}
+}
+
+@available(Configuration 1.0, *)
+extension CascadingProvider.UpstreamProvider: CustomStringConvertible {
+	/// The description of the provider, the base scope & the floors, e.g.:
+	///
+	/// ```text
+	/// UpstreamProvider[provider: …, baseScope: ["tool"], cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: noCascading]
+	/// ```
+	public var description: String {
+		description(withProvider: String(describing: provider))
+	}
+}
+
+@available(Configuration 1.0, *)
+extension CascadingProvider.UpstreamProvider: CustomDebugStringConvertible {
+	/// The debug description of the provider, the base scope & the floors.
+	public var debugDescription: String {
+		description(withProvider: String(reflecting: provider))
+	}
+}
+
+@available(Configuration 1.0, *)
+private extension CascadingProvider.UpstreamProvider {
+	/// Returns the description of this upstream provider, whose provider has the
+	/// description `providerDescription`.
+	func description(withProvider providerDescription: String) -> String {
+		"""
+		UpstreamProvider[provider: \(providerDescription), baseScope: \(baseScope), \
+		cascadeScopeFloor: \(cascadeScopeFloor), baseScopeCascadeScopeFloor: \(baseScopeCascadeScopeFloor)]
+		"""
 	}
 }
 
@@ -367,14 +408,14 @@ extension CascadingProvider: ConfigProvider {
 @available(Configuration 1.0, *)
 extension CascadingProvider: CustomStringConvertible {
 	public var description: String {
-		"CascadingProvider[providers: \(upstreams.map { String(describing: $0.provider) }.joined(separator: ", "))]"
+		"CascadingProvider[providers: \(upstreams.map(\.description).joined(separator: ", "))]"
 	}
 }
 
 @available(Configuration 1.0, *)
 extension CascadingProvider: CustomDebugStringConvertible {
 	public var debugDescription: String {
-		"CascadingProvider[providers: \(upstreams.map { String(reflecting: $0.provider) }.joined(separator: ", "))]"
+		"CascadingProvider[providers: \(upstreams.map(\.debugDescription).joined(separator: ", "))]"
 	}
 }
 
