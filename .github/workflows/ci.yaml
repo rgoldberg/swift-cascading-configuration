@@ -108,6 +108,22 @@ jobs:
 
     - *test-dependency-versions
 
+  build-test-android:
+    name: Build & Test (Android)
+    permissions:
+      contents: read
+    # editorconfig-checker-disable
+    # yamllint disable-line rule:line-length
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@e8b910942e79fb2c0654a87804d8f16e2304285c # 0.0.19
+    # editorconfig-checker-enable
+    with:
+      enable_linux_checks: false
+      enable_windows_checks: false
+      enable_android_sdk_build: true
+      enable_android_sdk_checks: true
+      # Swift 6.3 is the 1st version that has a released Swift SDK for Android
+      android_sdk_versions: '["6.3", "6.4"]'
+
   build-apple-platform:
     name: Build (${{matrix.platform}})
     strategy:
