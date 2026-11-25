@@ -75,7 +75,7 @@ key overrides that floor via its context:
 config.string(forKey: ConfigKey("pager", context: .baseScopeCascadeScopeFloor(0)))
 ```
 
-A key overrides the base scope of every upstream provider via its context too:
+A key overrides the base scope of every upstream provider via its context, too:
 an empty base scope removes every base scope, while any other base scope
 replaces each base scope that is not empty:
 

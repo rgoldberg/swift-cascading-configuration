@@ -84,7 +84,7 @@ public import Configuration
 /// because the cascade removes a base scope only after every other scope.
 /// ``CascadeScopeFloor/noCascading`` (the default) keeps the whole base scope,
 /// while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`,
-/// with base scope `["tool"]`). A key overrides that floor via its context too
+/// with base scope `["tool"]`). A key overrides that floor via its context, too
 /// (e.g., `.baseScopeCascadeScopeFloor(0)`).
 ///
 /// A key overrides a base scope via its context (e.g., `.baseScope([])`): an

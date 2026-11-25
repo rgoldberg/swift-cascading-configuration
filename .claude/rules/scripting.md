@@ -36,4 +36,4 @@ paths:
 
 - Never delete a valid public version tag (one with a trusted SSH signature that
   is on `main`, as `tag-pushed.yaml` checks); `release-cancel` retains local
-  version tags too
+  version tags, too
