@@ -32,9 +32,9 @@ public extension ConfigProvider {
 	///     CascadingProvider(providers: [.init(envProvider), .init(fileProvider)]),
 	/// ])
 	///
-	/// // The overrides provider looks up "a.setting" with an empty context.
+	/// // The overrides provider looks up "a.setting" with an empty context
 	/// let value = config.string(
-	///     forKey: ConfigKey("a.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1])
+	///     forKey: ConfigKey("a.setting", context: [CascadingProvider.cascadeScopeFloorContextKey: 1]),
 	/// )
 	/// ```
 	///
