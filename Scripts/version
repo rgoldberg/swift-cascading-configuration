@@ -16,7 +16,11 @@ if [[ "${branch}" = HEAD ]]; then
 	if ! git show-ref --verify --quiet refs/heads/main || git merge-base --is-ancestor HEAD main; then
 		branch=
 	else
-		branch="${"${"${(fnO)"$(git branch --contains HEAD --format '%(ahead-behind:HEAD) %(refname:short)')"}"[1]}"##* }"
+		# The nearest local branch that contains HEAD: the one with the fewest commits that HEAD lacks; [(f)1] picks the 1st
+		# line even if there is only 1, which ${(f)…} would yield as a string, not as an array
+		branch="${${(F)${(fn)"$(
+			git for-each-ref --contains HEAD --format '%(ahead-behind:HEAD) %(refname:short)' refs/heads
+		)"}}[(f)1]##* }"
 	fi
 fi
 readonly branch
