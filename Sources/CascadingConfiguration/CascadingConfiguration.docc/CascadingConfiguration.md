@@ -17,3 +17,38 @@ specific keys when its upstream providers have no value for the requested key
 
 - ``CascadingProvider``
 - ``ConfigProvider/ignoringCascadeContext()``
+
+### Swift Configuration
+
+The symbols that `CascadingConfiguration` re-exports from Swift Configuration.
+
+- ``AbsoluteConfigKey``
+- ``AccessEvent``
+- ``AccessReporter``
+- ``BroadcastingAccessReporter``
+- ``ConfigBytesFromBase64StringDecoder``
+- ``ConfigBytesFromHexStringDecoder``
+- ``ConfigBytesFromStringDecoder``
+- ``ConfigContent``
+- ``ConfigContextValue``
+- ``ConfigKey``
+- ``ConfigProvider``
+- ``ConfigReader``
+- ``ConfigSnapshot``
+- ``ConfigSnapshotReader``
+- ``ConfigType``
+- ``ConfigUpdatesAsyncSequence``
+- ``ConfigValue``
+- ``DirectoryFilesProvider``
+- ``EnvironmentVariablesProvider``
+- ``ExpressibleByConfigInt``
+- ``ExpressibleByConfigString``
+- ``FileAccessLogger``
+- ``FileConfigSnapshot``
+- ``FileParsingOptions``
+- ``FileProvider``
+- ``InMemoryProvider``
+- ``KeyMappingProvider``
+- ``LookupResult``
+- ``MutableInMemoryProvider``
+- ``SecretsSpecifier``
