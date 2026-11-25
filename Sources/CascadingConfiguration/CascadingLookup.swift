@@ -34,12 +34,12 @@ func cascadingLookups(
 ) -> [CascadingLookup] {
 	var context = key.context
 	let cascadeContext = CascadingProvider.removeCascadeContext(from: &context)
+	let baseScopes = upstreams.map { $0.baseScope.isEmpty ? [] : cascadeContext.baseScope ?? $0.baseScope }
 	guard let name = key.components.last else {
-		return upstreams.indices.map { (upstreamIndex: $0, key: .init(key.components, context: context)) }
+		return baseScopes.enumerated().map { (upstreamIndex: $0, key: .init($1, context: context)) }
 	}
 	let scope = key.components.dropLast()
-	let plans = upstreams.map { upstream in
-		let baseScope = upstream.baseScope.isEmpty ? [] : cascadeContext.baseScope ?? upstream.baseScope
+	let plans = zip(upstreams, baseScopes).map { upstream, baseScope in
 		let fullScope = baseScope + scope
 		let cascadeScopeFloor = cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor
 		// The cascade removes a base scope only after every other scope, so a base

@@ -25,6 +25,17 @@ struct CascadingLookupTests {
 
 	@available(Configuration 1.0, *)
 	@Test
+	func `base scope is prepended to empty key`() throws {
+		let scoped = KeyRecordingProvider()
+		let unscoped = KeyRecordingProvider()
+		let provider = CascadingProvider(providers: [.init(scoped, baseScope: ["tool"]), .init(unscoped)])
+		_ = try provider.value(forKey: [], type: .string)
+		#expect(scoped.keys.withLock(\.self) == ["tool"])
+		#expect(unscoped.keys.withLock(\.self) == [""])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
 	func `lookups interleave upstreams by step`() throws {
 		let recorder = KeyRecordingProvider()
 		let provider = CascadingProvider(
