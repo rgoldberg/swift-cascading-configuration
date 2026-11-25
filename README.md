@@ -72,7 +72,7 @@ key overrides that floor via its context:
 
 ```swift
 // Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
-config.string(forKey: ConfigKey("pager", context: .baseScopeCascadeScopeFloor(0)))
+config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 ```
 
 A key overrides the base scope of every upstream provider via its context, too:
@@ -81,7 +81,7 @@ replaces each base scope that is not empty:
 
 ```swift
 // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-config.string(forKey: ConfigKey("pager", context: .baseScope([])))
+config.string(forKey: .init("pager", context: .baseScope([])))
 ```
 
 ### Limiting the Cascade
@@ -93,7 +93,7 @@ has its own floor, which a key overrides via its context:
 
 ```swift
 // Tries "a.b.setting", then "a.setting"
-config.string(forKey: ConfigKey("a.b.setting", context: .cascadeScopeFloor(1)))
+config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 ```
 
 Chain these context functions to set several entries (e.g.,

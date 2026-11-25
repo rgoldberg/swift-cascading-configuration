@@ -22,9 +22,9 @@ struct FailingProvider: ConfigProvider {
 
 	func value(forKey key: AbsoluteConfigKey, type _: ConfigType) throws(TestError) -> LookupResult {
 		guard key != failingKey else {
-			throw TestError()
+			throw .init()
 		}
-		return LookupResult(encodedKey: key.description, value: nil)
+		return .init(encodedKey: key.description, value: nil)
 	}
 
 	func fetchValue(forKey key: AbsoluteConfigKey, type: ConfigType) throws(TestError) -> LookupResult {

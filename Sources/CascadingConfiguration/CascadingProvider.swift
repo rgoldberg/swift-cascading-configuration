@@ -75,7 +75,7 @@ public import Configuration
 /// config.string(forKey: "a.b.setting")
 ///
 /// // Tries "a.b.setting", then "a.setting"
-/// config.string(forKey: ConfigKey("a.b.setting", context: .cascadeScopeFloor(1)))
+/// config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 /// ```
 ///
 /// A base scope cascade scope floor is the minimum number of base scopes that a
@@ -289,7 +289,7 @@ extension CascadingProvider.UpstreamProvider: CustomStringConvertible {
 	/// UpstreamProvider[provider: …, baseScope: ["tool"], cascadeScopeFloor: 0, baseScopeCascadeScopeFloor: noCascading]
 	/// ```
 	public var description: String {
-		description(withProvider: String(describing: provider))
+		description(withProvider: .init(describing: provider))
 	}
 }
 
@@ -297,7 +297,7 @@ extension CascadingProvider.UpstreamProvider: CustomStringConvertible {
 extension CascadingProvider.UpstreamProvider: CustomDebugStringConvertible {
 	/// The debug description of the provider, the base scope & the floors.
 	public var debugDescription: String {
-		description(withProvider: String(reflecting: provider))
+		description(withProvider: .init(reflecting: provider))
 	}
 }
 

@@ -21,7 +21,7 @@ extension ConfigContent {
 	var asString: String {
 		get throws(UnwrapError) {
 			guard case let .string(value) = self else {
-				throw UnwrapError(content: self)
+				throw .init(content: self)
 			}
 			return value
 		}

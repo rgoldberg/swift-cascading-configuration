@@ -17,7 +17,7 @@ public import Configuration
 ///
 /// ```swift
 /// // Looks up only GIT_A_PAGER in an environment provider whose base scope is ["tool"]
-/// config.string(forKey: ConfigKey("a.pager", context: .cascadeScopeFloor(1).baseScope(["git"])))
+/// config.string(forKey: .init("a.pager", context: .cascadeScopeFloor(1).baseScope(["git"])))
 /// ```
 @available(Configuration 1.0, *)
 public extension [String: ConfigContextValue] {
@@ -26,14 +26,14 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Tries "a.b.setting", then "a.setting"
-	/// config.string(forKey: ConfigKey("a.b.setting", context: .cascadeScopeFloor(1)))
+	/// config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 	/// ```
 	///
 	/// - Parameter floor: The minimum number of scopes, not counting base scopes,
 	///   that a key tried by the cascade keeps.
 	/// - Returns: A key context that holds only `floor`.
 	static func cascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
-		Self().cascadeScopeFloor(floor)
+		.init().cascadeScopeFloor(floor)
 	}
 
 	/// Returns a key context whose base scope cascade scope floor overrides that
@@ -42,14 +42,14 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
-	/// config.string(forKey: ConfigKey("pager", context: .baseScopeCascadeScopeFloor(0)))
+	/// config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 	/// ```
 	///
 	/// - Parameter floor: The minimum number of base scopes that a key tried by
 	///   the cascade keeps, if its cascade scope floor is `0`.
 	/// - Returns: A key context that holds only `floor`.
 	static func baseScopeCascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
-		Self().baseScopeCascadeScopeFloor(floor)
+		.init().baseScopeCascadeScopeFloor(floor)
 	}
 
 	/// Returns a key context whose base scope overrides that of upstream
@@ -60,13 +60,13 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-	/// config.string(forKey: ConfigKey("pager", context: .baseScope([])))
+	/// config.string(forKey: .init("pager", context: .baseScope([])))
 	/// ```
 	///
 	/// - Parameter baseScope: The base scope of the key.
 	/// - Returns: A key context that holds only `baseScope`.
 	static func baseScope(_ baseScope: [String]) -> Self {
-		Self().baseScope(baseScope)
+		.init().baseScope(baseScope)
 	}
 
 	/// Returns this key context with a cascade scope floor that overrides that of

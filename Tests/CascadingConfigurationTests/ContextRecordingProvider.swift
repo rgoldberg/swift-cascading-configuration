@@ -22,7 +22,7 @@ final class ContextRecordingProvider: ConfigProvider {
 
 	func value(forKey key: AbsoluteConfigKey, type _: ConfigType) -> LookupResult {
 		contexts.withLock { $0.append(key.context) }
-		return LookupResult(encodedKey: key.description, value: nil)
+		return .init(encodedKey: key.description, value: nil)
 	}
 
 	func fetchValue(forKey key: AbsoluteConfigKey, type: ConfigType) -> LookupResult {
