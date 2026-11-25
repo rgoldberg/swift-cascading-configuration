@@ -7,5 +7,7 @@ changelog:
     labels: [enhancement]
   - title: 🐛 Bug Fixes
     labels: [bug]
+  - title: ⬆️ Dependencies
+    labels: [dependencies]
   - title: Changes
     labels: ['*']
