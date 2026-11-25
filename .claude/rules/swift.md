@@ -151,7 +151,8 @@ Within this section & all subsections, `X` is a placeholder for any type name.
 
 1. Unaliased infrequent closure / tuple whose elements need no documentation
 2. Type-aliased frequent closure / tuple whose elements need no documentation
-3. `enum`
+3. `enum`, iff the values of the type are a closed set of cases (e.g., an error
+   without a payload)
 4. `struct`
 5. `actor`
 6. `final class`
