@@ -149,8 +149,8 @@ Within this section & all subsections, `X` is a placeholder for any type name.
 
 ### Preferred Types
 
-1. Unaliased infrequent tuple / closure
-2. Type-aliased frequent tuple / closure
+1. Unaliased infrequent closure / tuple whose elements need no documentation
+2. Type-aliased frequent closure / tuple whose elements need no documentation
 3. `enum`
 4. `struct`
 5. `actor`
