@@ -12,10 +12,10 @@ import Synchronization
 import Testing
 
 /// The bytes of a byte configuration value that the compat test expects.
-private let magic = [0x6d, 0x61, 0x67, 0x69, 0x63] as [UInt8]
+private let magic = [UInt8(0x6d), 0x61, 0x67, 0x69, 0x63]
 
 /// The bytes of another byte configuration value that the compat test expects.
-private let magic2 = [0x6d, 0x61, 0x67, 0x69, 0x63, 0x32] as [UInt8]
+private let magic2 = [UInt8(0x6d), 0x61, 0x67, 0x69, 0x63, 0x32]
 
 struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
