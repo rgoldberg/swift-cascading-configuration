@@ -475,8 +475,9 @@ struct CascadingProviderTests {
 		#expect(CascadingProvider.CascadeScopeFloor.noCascading.description == "noCascading")
 	}
 
-	// Swift Testing has no exit tests on iOS, tvOS, watchOS, or visionOS
-	#if os(macOS) || os(Linux) || os(Windows)
+	// Swift Testing has exit tests only on macOS, Linux, FreeBSD, OpenBSD &
+	// Windows (e.g., not on Android or iOS)
+	#if os(macOS) || os(Linux) || os(FreeBSD) || os(OpenBSD) || os(Windows)
 	@available(Configuration 1.0, *)
 	@Test
 	func `no upstream providers fails`() async {
