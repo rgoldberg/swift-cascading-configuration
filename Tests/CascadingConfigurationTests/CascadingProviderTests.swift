@@ -119,9 +119,8 @@ struct CascadingProviderTests {
 			],
 		).watchValue(forKey: ["a", "setting"], type: .string) { updates in
 			var iterator = updates.makeAsyncIterator()
-			let result = await iterator.next(isolation: #isolation)
-			#expect(throws: FailingProvider.TestError.self) {
-				try result?.get()
+			await #expect(throws: FailingProvider.TestError.self) {
+				try await iterator.next(isolation: #isolation)?.get()
 			}
 		}
 	}
@@ -191,9 +190,8 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `cascade scope floor limits fetch`() async throws {
-		let key = AbsoluteConfigKey(["a", "b", "setting"], context: .cascadeScopeFloor(1))
 		let result = try await CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
-			.fetchValue(forKey: key, type: .string)
+			.fetchValue(forKey: .init(["a", "b", "setting"], context: .cascadeScopeFloor(1)), type: .string)
 		#expect(result.value == nil)
 		#expect(result.encodedKey == "a.b.setting")
 	}
@@ -202,16 +200,16 @@ struct CascadingProviderTests {
 	@Test
 	func `cascade scope floor limits watch`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
-		let key = AbsoluteConfigKey(["a", "b", "setting"], context: .cascadeScopeFloor(1))
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let future1 = TestFuture<String?>(name: "future1")
 			let future2 = TestFuture<String?>(name: "future2")
 			group.addTask {
-				try await CascadingProvider(providers: [.init(upstream)]).watchValue(forKey: key, type: .string) { updates in
-					var iterator = updates.makeAsyncIterator()
-					try await future1.fulfill(iterator.next()?.get().value?.content.asString)
-					try await future2.fulfill(iterator.next()?.get().value?.content.asString)
-				}
+				try await CascadingProvider(providers: [.init(upstream)])
+					.watchValue(forKey: .init(["a", "b", "setting"], context: .cascadeScopeFloor(1)), type: .string) { updates in
+						var iterator = updates.makeAsyncIterator()
+						try await future1.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future2.fulfill(iterator.next()?.get().value?.content.asString)
+					}
 			}
 			// "setting" has fewer scopes than the floor, so its value is not found
 			await #expect(future1.value == nil)
@@ -311,18 +309,18 @@ struct CascadingProviderTests {
 	func `watch value key specificity over provider order`() async throws {
 		let first = MutableInMemoryProvider(name: "1st", initialValues: ["setting": "1st general"])
 		let second = MutableInMemoryProvider(name: "2nd", initialValues: [:])
-		let provider = CascadingProvider(providers: [.init(first), .init(second)])
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let future1 = TestFuture<String?>(name: "future1")
 			let future2 = TestFuture<String?>(name: "future2")
 			let future3 = TestFuture<String?>(name: "future3")
 			group.addTask {
-				try await provider.watchValue(forKey: ["a", "setting"], type: .string) { updates in
-					var iterator = updates.makeAsyncIterator()
-					try await future1.fulfill(iterator.next()?.get().value?.content.asString)
-					try await future2.fulfill(iterator.next()?.get().value?.content.asString)
-					try await future3.fulfill(iterator.next()?.get().value?.content.asString)
-				}
+				try await CascadingProvider(providers: [.init(first), .init(second)])
+					.watchValue(forKey: ["a", "setting"], type: .string) { updates in
+						var iterator = updates.makeAsyncIterator()
+						try await future1.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future2.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future3.fulfill(iterator.next()?.get().value?.content.asString)
+					}
 			}
 			await #expect(future1.value == "1st general")
 
