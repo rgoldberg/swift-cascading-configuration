@@ -19,8 +19,8 @@ typealias CascadingLookup = (upstreamIndex: Int, key: AbsoluteConfigKey)
 ///
 /// Each step removes 1 more scope from the key of every upstream provider, and
 /// an upstream provider tries no key that has fewer scopes than its own floor,
-/// so upstream providers whose base scopes differ in length still try their
-/// keys in order of specificity (e.g., for `pager`, with base scope cascade
+/// so an upstream provider whose key has more scopes than that of another keeps
+/// cascading after the other stops (e.g., for `pager`, with base scope cascade
 /// scope floor `0` & base scopes `["tool"]` & `["org", "tool"]`: `tool.pager`,
 /// `org.tool.pager`, `pager`, `org.pager`, then `pager`).
 /// - Parameters:
