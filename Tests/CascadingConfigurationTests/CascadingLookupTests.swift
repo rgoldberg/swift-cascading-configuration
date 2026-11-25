@@ -136,15 +136,17 @@ struct CascadingLookupTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
-	func `invalid base scope context is ignored`() throws {
+	@Test(
+		arguments: [
+			// The base scope claims 2 components, but has only 1
+			["cascadingConfiguration.baseScope.count": 2, "cascadingConfiguration.baseScope.0": "git"],
+			// The base scope claims more components than any context can hold
+			["cascadingConfiguration.baseScope.count": .int(.max)],
+		] as [[String: ConfigContextValue]],
+	)
+	func `invalid base scope context is ignored`(context: [String: ConfigContextValue]) throws {
 		let recorder = KeyRecordingProvider()
 		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
-		// The base scope claims 2 components, but has only 1
-		let context: [String: ConfigContextValue] = [
-			"cascadingConfiguration.baseScope.count": 2,
-			"cascadingConfiguration.baseScope.0": "git",
-		]
 		_ = try provider.value(forKey: .init(["pager"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.pager"])
 	}

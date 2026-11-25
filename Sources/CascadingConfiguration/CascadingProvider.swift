@@ -470,7 +470,9 @@ extension CascadingProvider {
 	/// - Returns: The base scope, if any.
 	// swiftlint:disable:next discouraged_optional_collection
 	private static func baseScope(from entries: [String: ConfigContextValue], prefix: String) -> [String]? {
-		guard case let .int(count) = entries["\(prefix)count"], count >= 0 else {
+		// `entries` holds the count & each component, so a count of at least
+		// `entries.count` misses a component
+		guard case let .int(count) = entries["\(prefix)count"], (0..<entries.count).contains(count) else {
 			return nil
 		}
 		let components = (0..<count)
