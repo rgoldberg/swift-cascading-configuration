@@ -446,18 +446,14 @@ extension CascadingProvider {
 	/// - Returns: The cascade context that `context` held.
 	@discardableResult
 	static func removeCascadeContext(from context: inout [String: ConfigContextValue]) -> CascadeContext {
-		let cascadeScopeFloor = CascadeScopeFloor(
-			contextValue: context.removeValue(forKey: cascadeScopeFloorContextKey),
-		)
-		let baseScopeCascadeScopeFloor = CascadeScopeFloor(
-			contextValue: context.removeValue(forKey: baseScopeCascadeScopeFloorContextKey),
-		)
 		let baseScopePrefix = "\(baseScopeContextKeyPrefix)."
 		let baseScopeEntries = context.filter { $0.key.hasPrefix(baseScopePrefix) }
 		context = context.filter { !$0.key.hasPrefix(baseScopePrefix) }
 		return .init(
-			cascadeScopeFloor: cascadeScopeFloor,
-			baseScopeCascadeScopeFloor: baseScopeCascadeScopeFloor,
+			cascadeScopeFloor: .init(contextValue: context.removeValue(forKey: cascadeScopeFloorContextKey)),
+			baseScopeCascadeScopeFloor: .init(
+				contextValue: context.removeValue(forKey: baseScopeCascadeScopeFloorContextKey),
+			),
 			baseScope: baseScope(from: baseScopeEntries, prefix: baseScopePrefix),
 		)
 	}

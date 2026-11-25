@@ -22,10 +22,8 @@ struct CascadingSnapshotTests {
 		let snapshot = provider.snapshot()
 		#expect(snapshot.providerName == provider.providerName)
 
-		let specificResult = try snapshot.value(forKey: ["a", "b", "setting"], type: .string)
-		#expect(try specificResult.value?.content.asString == "2nd specific")
+		#expect(try snapshot.value(forKey: ["a", "b", "setting"], type: .string).value?.content.asString == "2nd specific")
 
-		let generalResult = try snapshot.value(forKey: ["x", "setting"], type: .string)
-		#expect(try generalResult.value?.content.asString == "1st general")
+		#expect(try snapshot.value(forKey: ["x", "setting"], type: .string).value?.content.asString == "1st general")
 	}
 }

@@ -46,14 +46,13 @@ struct CascadeContextTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `entries replace their own kind only`() {
-		let context = ["environment": "production", "cascadingConfiguration.baseScopeCount": "kept"]
-			.cascadeScopeFloor(2)
-			.baseScope(["org", "tool"])
-			.cascadeScopeFloor(1)
-			// Leaves no entry of the replaced base scope
-			.baseScope(["git"])
 		#expect(
-			context
+			["environment": "production", "cascadingConfiguration.baseScopeCount": "kept"]
+				.cascadeScopeFloor(2)
+				.baseScope(["org", "tool"])
+				.cascadeScopeFloor(1)
+				// Leaves no entry of the replaced base scope
+				.baseScope(["git"])
 				== [
 					"environment": "production",
 					"cascadingConfiguration.baseScopeCount": "kept",

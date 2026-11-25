@@ -108,7 +108,9 @@ Within this section & all subsections, `X` is a placeholder for any type name.
 
 ### Value Inlining / Binding
 
-1. Inlined single-use value
+1. Inlined single-use value, unless the formatted inlined code would be more
+   than 1 line longer than the binding & its use (e.g., a 3-line value used in a
+   1-line statement may be inlined into at most 5 lines)
 2. `let` multiple-use value
 3. `var` multiple-use value
 

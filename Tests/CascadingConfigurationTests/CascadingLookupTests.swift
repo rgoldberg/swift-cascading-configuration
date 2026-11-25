@@ -15,13 +15,12 @@ struct CascadingLookupTests {
 	@Test
 	func `base scope is prepended but never removed by default`() throws {
 		let upstream = KeyRecordingProvider()
-		let provider = CascadingProvider(
+		_ = try CascadingProvider(
 			providers: [
 				.init(upstream, baseScope: ["tool"]),
 				.init(KeyRecordingProvider()),
 			],
-		)
-		_ = try provider.value(forKey: ["install", "limit"], type: .string)
+		).value(forKey: ["install", "limit"], type: .string)
 		#expect(upstream.keys.withLock(\.self) == ["tool.install.limit", "tool.limit"])
 	}
 
@@ -40,13 +39,12 @@ struct CascadingLookupTests {
 	@Test
 	func `lookups interleave upstreams by step`() throws {
 		let recorder = KeyRecordingProvider()
-		let provider = CascadingProvider(
+		_ = try CascadingProvider(
 			providers: [
 				.init(recorder, baseScope: ["tool"], baseScopeCascadeScopeFloor: 0),
 				.init(recorder, baseScope: ["org", "tool"], baseScopeCascadeScopeFloor: 0),
 			],
-		)
-		_ = try provider.value(forKey: ["pager"], type: .string)
+		).value(forKey: ["pager"], type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.pager", "org.tool.pager", "pager", "org.pager", "pager"])
 	}
 
@@ -84,13 +82,12 @@ struct CascadingLookupTests {
 		upstreamFloor: CascadingProvider.CascadeScopeFloor,
 	) throws {
 		let recorder = KeyRecordingProvider()
-		let provider = CascadingProvider(
+		let context = contextFloor.map([String: ConfigContextValue].cascadeScopeFloor) ?? [:]
+		_ = try CascadingProvider(
 			providers: [
 				.init(recorder, baseScope: ["tool"], cascadeScopeFloor: upstreamFloor, baseScopeCascadeScopeFloor: 0),
 			],
-		)
-		let context = contextFloor.map([String: ConfigContextValue].cascadeScopeFloor) ?? [:]
-		_ = try provider.value(forKey: .init(["install", "limit"], context: context), type: .string)
+		).value(forKey: .init(["install", "limit"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit"])
 	}
 
@@ -98,12 +95,11 @@ struct CascadingLookupTests {
 	@Test
 	func `zero context cascade scope floor applies base scope cascade scope floor`() throws {
 		let recorder = KeyRecordingProvider()
-		let provider = CascadingProvider(
+		_ = try CascadingProvider(
 			providers: [
 				.init(recorder, baseScope: ["tool"], cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: 0),
 			],
-		)
-		_ = try provider.value(forKey: .init(["install", "limit"], context: .cascadeScopeFloor(0)), type: .string)
+		).value(forKey: .init(["install", "limit"], context: .cascadeScopeFloor(0)), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit", "tool.limit", "limit"])
 	}
 
@@ -111,12 +107,11 @@ struct CascadingLookupTests {
 	@Test
 	func `base scope cascade scope floor ignored without base scope`() throws {
 		let recorder = KeyRecordingProvider()
-		let provider = CascadingProvider(
+		_ = try CascadingProvider(
 			providers: [
 				.init(recorder, cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: 0),
 			],
-		)
-		_ = try provider.value(forKey: ["install", "limit"], type: .string)
+		).value(forKey: ["install", "limit"], type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["install.limit"])
 	}
 
@@ -134,8 +129,7 @@ struct CascadingLookupTests {
 	) throws {
 		let scoped = KeyRecordingProvider()
 		let unscoped = KeyRecordingProvider()
-		let provider = CascadingProvider(providers: [.init(scoped, baseScope: ["tool"]), .init(unscoped)])
-		_ = try provider.value(
+		_ = try CascadingProvider(providers: [.init(scoped, baseScope: ["tool"]), .init(unscoped)]).value(
 			forKey: .init(["pager"], context: .baseScope(baseScope)),
 			type: .string,
 		)

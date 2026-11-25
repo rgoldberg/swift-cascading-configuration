@@ -38,9 +38,8 @@ func cascadingLookups(
 	guard let name = key.components.last else {
 		return baseScopes.enumerated().map { (upstreamIndex: $0, key: .init($1, context: context)) }
 	}
-	let scope = key.components.dropLast()
 	let plans = zip(upstreams, baseScopes).map { upstream, baseScope in
-		let fullScope = baseScope + scope
+		let fullScope = baseScope + key.components.dropLast()
 		let cascadeScopeFloor = cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor
 		// The cascade removes a base scope only after every other scope, so a base
 		// scope cascade scope floor applies only if no other scope must be kept
@@ -53,8 +52,7 @@ func cascadingLookups(
 				)
 		return (scope: fullScope, floor: min(floor, fullScope.count))
 	}
-	let stepCount = plans.lazy.map { $0.scope.count - $0.floor }.max() ?? 0
-	return (0...stepCount)
+	return (0...(plans.lazy.map { $0.scope.count - $0.floor }.max() ?? 0))
 		.flatMap { step in
 			plans.enumerated()
 				.compactMap { upstreamIndex, plan in
