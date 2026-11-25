@@ -13,7 +13,9 @@ on:
   - cron: 53 4 * * *
     timezone: America/New_York
 concurrency:
-  group: ${{github.workflow}}-${{github.ref}}
+  # Cancels only an outdated run of a pull request, so that each run on main completes, letting release-start.yaml
+  # release its commit
+  group: ${{github.workflow}}-${{github.event_name == 'pull_request' && github.ref || github.run_id}}
   cancel-in-progress: true
 permissions: {}
 jobs:
