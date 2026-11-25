@@ -64,7 +64,7 @@ struct CascadingLookupTests {
 	) throws {
 		let recorder = KeyRecordingProvider()
 		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
-		let context = floor.map { [String: ConfigContextValue].baseScopeCascadeScopeFloor($0) } ?? [:]
+		let context = floor.map([String: ConfigContextValue].baseScopeCascadeScopeFloor) ?? [:]
 		_ = try provider.value(forKey: .init(["install", "limit"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == expected)
 	}
@@ -85,7 +85,7 @@ struct CascadingLookupTests {
 		let provider = CascadingProvider(providers: [
 			.init(recorder, baseScope: ["tool"], cascadeScopeFloor: upstreamFloor, baseScopeCascadeScopeFloor: 0),
 		])
-		let context = contextFloor.map { [String: ConfigContextValue].cascadeScopeFloor($0) } ?? [:]
+		let context = contextFloor.map([String: ConfigContextValue].cascadeScopeFloor) ?? [:]
 		_ = try provider.value(forKey: .init(["install", "limit"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit"])
 	}
