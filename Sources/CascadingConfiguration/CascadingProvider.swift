@@ -461,8 +461,8 @@ extension CascadingProvider {
 	}
 
 	/// Returns the base scope that the indexed entries of a key context hold, or
-	/// `nil` if they hold none, or if an entry is missing or has a value of
-	/// another type.
+	/// `nil` if they hold none, or if an entry is missing, is extra, or has a
+	/// value of another type.
 	///
 	/// - Parameters:
 	///   - entries: The entries whose names start with `prefix`.
@@ -470,9 +470,8 @@ extension CascadingProvider {
 	/// - Returns: The base scope, if any.
 	// swiftlint:disable:next discouraged_optional_collection
 	private static func baseScope(from entries: [String: ConfigContextValue], prefix: String) -> [String]? {
-		// `entries` holds the count & each component, so a count of at least
-		// `entries.count` misses a component
-		guard case let .int(count) = entries["\(prefix)count"], (0..<entries.count).contains(count) else {
+		// `entries` must hold only the count & each component
+		guard case let .int(count) = entries["\(prefix)count"], count == entries.count - 1 else {
 			return nil
 		}
 		let components = (0..<count)

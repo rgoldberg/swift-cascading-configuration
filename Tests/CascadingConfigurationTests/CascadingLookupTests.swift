@@ -159,6 +159,12 @@ struct CascadingLookupTests {
 			["cascadingConfiguration.baseScope.count": .int(.max)],
 			// The base scope claims a negative number of components
 			["cascadingConfiguration.baseScope.count": -1],
+			// The base scope claims 1 component, but has 2
+			[
+				"cascadingConfiguration.baseScope.count": 1,
+				"cascadingConfiguration.baseScope.0": "git",
+				"cascadingConfiguration.baseScope.1": "org",
+			],
 			// A component of the base scope is not a string
 			["cascadingConfiguration.baseScope.count": 1, "cascadingConfiguration.baseScope.0": 1],
 		] as [[String: ConfigContextValue]],
