@@ -1,5 +1,6 @@
 #
 # .github/CODEOWNERS
+# swift-cascading-configuration
 #
 
 /.github/ @ro-ss/admins

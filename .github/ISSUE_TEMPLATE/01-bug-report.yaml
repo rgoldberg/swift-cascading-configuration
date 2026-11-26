@@ -1,3 +1,7 @@
+#
+# .github/ISSUE_TEMPLATE/01-bug-report.yaml
+# swift-cascading-configuration
+#
 ---
 name: Bug Report
 description: Report a bug.

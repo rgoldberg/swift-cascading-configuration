@@ -1,5 +1,6 @@
 #
 # .github/workflows/outdated-dependencies.yaml
+# swift-cascading-configuration
 #
 ---
 name: Outdated Dependencies

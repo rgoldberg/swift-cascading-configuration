@@ -1,5 +1,6 @@
 #
 # .github/workflows/codeql.yaml
+# swift-cascading-configuration
 #
 ---
 name: CodeQL
@@ -10,10 +11,12 @@ on:
     branches: [main]
   schedule:
   - cron: 44 14 * * 4
+    timezone: America/New_York
   workflow_dispatch: {}
 permissions: {}
 defaults:
   run:
+    # Does not force arm64, because CodeQL runs x86_64 binaries, which need Rosetta 2
     shell: /bin/zsh -efux --extended-glob --pipe-fail --warn-create-global {0}
 jobs:
   analyze:

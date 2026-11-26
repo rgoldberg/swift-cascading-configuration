@@ -1,3 +1,7 @@
+#
+# .github/ISSUE_TEMPLATE/02-feature-request.yaml
+# swift-cascading-configuration
+#
 ---
 name: Feature Request
 description: Request a feature.

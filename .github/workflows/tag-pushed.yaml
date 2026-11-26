@@ -1,5 +1,6 @@
 #
 # .github/workflows/tag-pushed.yaml
+# swift-cascading-configuration
 #
 ---
 name: tag-pushed

@@ -1,3 +1,7 @@
+#
+# .github/dependabot.yaml
+# swift-cascading-configuration
+#
 ---
 version: 2
 updates:

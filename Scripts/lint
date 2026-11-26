@@ -89,8 +89,7 @@ if ! [[ -v 'received_flag[-A]' ]]; then
 				-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
 				build-for-testing\
 				2>&1
-		)\
-		--config .swiftlint.yml --config Tests/.swiftlint.yml -- "${swift_files[@]}"
+		) -- "${swift_files[@]}"
 	((exit_status |= ${?}))
 fi
 
@@ -146,6 +145,27 @@ if git grep -nP '(^\s*|[;|&(]\s*)(rm|cp(?!\s+-c\b))\s|\\e\[1;9?1m' --\
 	Scripts .github/workflows ':!Scripts/_setup-script'
 then
 	print_error 'Use trash instead of rm, cp -c instead of cp & print_error instead of printing an error in red'
+	((exit_status |= 1))
+fi
+
+print_section '🏷 File Headers'
+# Each script & config file starts with a header that names the file, then the project, each on its own comment line
+# shellcheck disable=SC1036,SC2034,SC2206
+readonly -a header_files=(
+	${(M)files:#(.github/(^allowed_signers)|.vale/*|Scripts/*|*.y(a|)ml|.editorconfig|.swiftformat|.vale.ini)}
+)
+for file in "${header_files[@]}"; do
+	# shellcheck disable=SC2034
+	file_lines=("${(@f)"$(<"${file}")"}")
+	if [[ $'\n'"${(F)file_lines[1,8]}"$'\n' != *$'\n#\n# '"${file}"$'\n# swift-cascading-configuration\n'* ]]; then
+		print_error '%s does not start with a header that names the file & the project' "${file}"
+		((exit_status |= 1))
+	fi
+done
+# GitHub Actions evaluates each if condition as an expression, so only one that starts with !, which YAML reads as a
+# tag, needs ${{…}}
+if git grep -nE '^[[:space:]]*if: \$\{\{[^!]' -- .github/workflows; then
+	print_error 'Omit ${{…}} from each if condition that does not start with !'
 	((exit_status |= 1))
 fi
 

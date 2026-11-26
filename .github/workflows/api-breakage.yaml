@@ -1,5 +1,6 @@
 #
 # .github/workflows/api-breakage.yaml
+# swift-cascading-configuration
 #
 ---
 name: API Breakage

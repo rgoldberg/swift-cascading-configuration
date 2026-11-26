@@ -1,3 +1,7 @@
+#
+# .github/release.yaml
+# swift-cascading-configuration
+#
 ---
 changelog:
   categories:
@@ -9,5 +13,5 @@ changelog:
     labels: [bug]
   - title: ⬆️ Dependencies
     labels: [dependencies]
-  - title: Changes
+  - title: 🔀 Other Changes
     labels: ['*']
