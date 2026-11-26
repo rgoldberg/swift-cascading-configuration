@@ -6,7 +6,7 @@
 # Copyright © 2026 Ross Goldberg
 # SPDX-License-Identifier: MIT
 #
-# Runs tests.
+# Runs tests, passing ${@} to swift test.
 #
 
 . "${0:A:h}/_setup-script"

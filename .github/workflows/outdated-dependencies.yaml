@@ -32,6 +32,7 @@ jobs:
         swift package resolve
         # swift-outdated exits 0 even if it finds a newer version, but prints to stdout only then
         outdated="$(swift outdated -i)"
+        readonly outdated
         if [[ -n "${outdated}" ]]; then
           printf %s\\n "${outdated}"
           exit 1

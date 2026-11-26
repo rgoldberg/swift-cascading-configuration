@@ -20,12 +20,13 @@ ensure_command_available jq
 # (e.g., in a fresh clone)
 swift package resolve
 
-# Each element is a dependency's identity & lower bound, separated by a space
-# shellcheck disable=SC2066
-for dependency in "${(f)"$(
+# Each line is a dependency's identity & lower bound, separated by a space
+dependencies="$(
 	swift package dump-package\
 		| jq -r '.dependencies[][][] | select(.requirement.range) | .identity + " " + .requirement.range[0].lowerBound'
-)":#}"
-do
+)"
+# shellcheck disable=SC2034
+readonly dependencies
+for dependency in ${(f)dependencies}; do
 	swift package resolve "${dependency% *}" --version "${dependency#* }"
 done

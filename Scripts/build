@@ -6,7 +6,7 @@
 # Copyright © 2026 Ross Goldberg
 # SPDX-License-Identifier: MIT
 #
-# Builds the Swift package.
+# Builds the Swift package, passing ${@} to swift build (e.g., -c release).
 #
 
 . "${0:A:h}/_setup-script"

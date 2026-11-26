@@ -21,9 +21,9 @@ conduct](CODE_OF_CONDUCT.md).
 This project uses [trunk-based development](https://trunkbaseddevelopment.com),
 where `main` is the trunk.
 
-- [Fork the repository](
-    https://github.com/ro-ss/swift-cascading-configuration#fork-button
-  ) on GitHub
+- [Fork the
+  repository](https://github.com/ro-ss/swift-cascading-configuration/fork) on
+  GitHub
 - Clone your fork:
   `git clone git@github.com:your-username/swift-cascading-configuration.git`
 - Create a topic branch instead of working directly on `main`
@@ -31,8 +31,13 @@ where `main` is the trunk.
     `git checkout -b feature main`
 - Commit logical units
 - Follow the [project guidelines](AGENTS.md)
-- Run `Scripts/format` before committing
-- Run `Scripts/check` before committing, then fix every failure that it reports
+- Run `Scripts/bootstrap` to install the tools that `Scripts/format` &
+  `Scripts/check` use
+- Before committing, run `Scripts/format` until it makes no modifications,
+  reviewing each run's modifications
+- Before committing, run `Scripts/check` (with `-A` if Xcode is not installed),
+  then fix every failure that it reports, except that of `api-breakage` for an
+  intentional API break
 - Write tests
   - If you need help with tests, feel free to open a PR, then ask for help
 - Write [good commit messages](

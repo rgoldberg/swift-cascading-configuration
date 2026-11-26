@@ -14,14 +14,10 @@ struct CascadingLookupTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `base scope is prepended but never removed by default`() throws {
-		let upstream = KeyRecordingProvider()
-		_ = try CascadingProvider(
-			providers: [
-				.init(upstream, baseScope: ["tool"]),
-				.init(KeyRecordingProvider()),
-			],
-		).value(forKey: ["install", "limit"], type: .string)
-		#expect(upstream.keys.withLock(\.self) == ["tool.install.limit", "tool.limit"])
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"]), .init(recorder)])
+			.value(forKey: ["install", "limit"], type: .string)
+		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit", "install.limit", "tool.limit", "limit"])
 	}
 
 	@available(Configuration 1.0, *)
@@ -33,6 +29,19 @@ struct CascadingLookupTests {
 		_ = try provider.value(forKey: [], type: .string)
 		#expect(scoped.keys.withLock(\.self) == ["tool"])
 		#expect(unscoped.keys.withLock(\.self) == [""])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `empty key removes cascade context & applies base scope context`() throws {
+		let unscoped = ContextRecordingProvider()
+		let scoped = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(unscoped), .init(scoped, baseScope: ["tool"])]).value(
+			forKey: .init([], context: ["environment": "production"].baseScope(["git"])),
+			type: .string,
+		)
+		#expect(unscoped.contexts.withLock(\.self) == [["environment": "production"]])
+		#expect(scoped.keys.withLock(\.self) == ["git"])
 	}
 
 	@available(Configuration 1.0, *)
@@ -67,6 +76,26 @@ struct CascadingLookupTests {
 		let context = floor.map([String: ConfigContextValue].baseScopeCascadeScopeFloor) ?? [:]
 		_ = try provider.value(forKey: .init(["install", "limit"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == expected)
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `base scope cascade scope floor keeps leading base scopes`() throws {
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["org", "tool"], baseScopeCascadeScopeFloor: 1)])
+			.value(forKey: ["a", "limit"], type: .string)
+		#expect(recorder.keys.withLock(\.self) == ["org.tool.a.limit", "org.tool.limit", "org.limit"])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `context base scope cascade scope floor overrides upstream base scope cascade scope floor`() throws {
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"], baseScopeCascadeScopeFloor: 0)]).value(
+			forKey: .init(["install", "limit"], context: .baseScopeCascadeScopeFloor(.noCascading)),
+			type: .string,
+		)
+		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit", "tool.limit"])
 	}
 
 	@available(Configuration 1.0, *)
@@ -135,7 +164,7 @@ struct CascadingLookupTests {
 			(["git"], ["git.pager"], ["pager"]),
 		] as [([String], [String], [String])],
 	)
-	func `base scope context overrides only non empty base scopes`(
+	func `base scope context overrides only nonempty base scopes`(
 		baseScope: [String],
 		expectedScoped: [String],
 		expectedUnscoped: [String],
@@ -148,6 +177,24 @@ struct CascadingLookupTests {
 		)
 		#expect(scoped.keys.withLock(\.self) == expectedScoped)
 		#expect(unscoped.keys.withLock(\.self) == expectedUnscoped)
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(
+		arguments: [
+			(
+				[String: ConfigContextValue].baseScope(["org", "git"]).baseScopeCascadeScopeFloor(1),
+				["org.git.a.pager", "org.git.pager", "org.pager"],
+			),
+			// The example of the documentation of the cascade context functions
+			(.cascadeScopeFloor(1).baseScope(["git"]), ["git.a.pager"]),
+		],
+	)
+	func `cascade context entries combine`(context: [String: ConfigContextValue], expected: [String]) throws {
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
+			.value(forKey: .init(["a", "pager"], context: context), type: .string)
+		#expect(recorder.keys.withLock(\.self) == expected)
 	}
 
 	@available(Configuration 1.0, *)
@@ -167,6 +214,17 @@ struct CascadingLookupTests {
 			],
 			// A component of the base scope is not a string
 			["cascadingConfiguration.baseScope.count": 1, "cascadingConfiguration.baseScope.0": 1],
+			// The base scope has a component, but no count
+			["cascadingConfiguration.baseScope.0": "git"],
+			// The count of the base scope is not an integer
+			["cascadingConfiguration.baseScope.count": "1", "cascadingConfiguration.baseScope.0": "git"],
+			// The base scope has as many components as it claims, but lacks the
+			// component at index 1
+			[
+				"cascadingConfiguration.baseScope.count": 2,
+				"cascadingConfiguration.baseScope.0": "org",
+				"cascadingConfiguration.baseScope.2": "git",
+			],
 		] as [[String: ConfigContextValue]],
 	)
 	func `invalid base scope context is ignored`(context: [String: ConfigContextValue]) throws {
@@ -174,5 +232,33 @@ struct CascadingLookupTests {
 		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
 		_ = try provider.value(forKey: .init(["pager"], context: context), type: .string)
 		#expect(recorder.keys.withLock(\.self) == ["tool.pager"])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `cascading value stops at 1st value`() throws {
+		let recorder = KeyRecordingProvider()
+		let result = try CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(values: ["a.setting": "specific"])),
+				.init(recorder),
+				.init(FailingProvider(failingKey: ["setting"])),
+			],
+		).value(forKey: ["a", "setting"], type: .string)
+		#expect(try result.value?.content.asString == "specific")
+		#expect(recorder.keys.withLock(\.self).isEmpty)
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `type mismatch at more specific key halts cascading`() {
+		// InMemoryProvider throws for a value of another type
+		let recorder = KeyRecordingProvider()
+		#expect(throws: (any Error).self) {
+			try CascadingProvider(
+				providers: [.init(InMemoryProvider(values: ["a.setting": 1, "setting": "general"])), .init(recorder)],
+			).value(forKey: ["a", "setting"], type: .string)
+		}
+		#expect(recorder.keys.withLock(\.self).isEmpty)
 	}
 }

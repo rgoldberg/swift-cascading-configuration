@@ -41,7 +41,8 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 /// A cascading lookup treats every component of a key except the last as a
 /// scope. If no upstream provider has a value for the requested key,
 /// `CascadingProvider` removes the innermost scope & tries again, until a value
-/// is found or no scopes remain.
+/// is found or the floors (see <doc:CascadingProvider#Limiting-the-cascade>) of
+/// every upstream provider stop the cascade.
 ///
 /// For example, a lookup of `a.b.setting` tries the following keys in order:
 ///
@@ -52,9 +53,11 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 /// ## Value resolution order
 ///
 /// Key specificity takes precedence over provider order: each step of a cascade
-/// removes 1 more scope from the key of every upstream provider & queries every
-/// upstream provider before the next step. Within 1 step, upstream providers
-/// are queried in the order in which they were provided.
+/// removes 1 more scope from the key of every upstream provider, then queries,
+/// before the next step, each upstream provider whose floors (see
+/// <doc:CascadingProvider#Limiting-the-cascade>) allow its shorter key. Within
+/// 1 step, upstream providers are queried in the order in which they were
+/// provided.
 ///
 /// ```swift
 /// let provider = CascadingProvider(providers: [.init(x), .init(y)])
@@ -99,15 +102,15 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 /// let config = ConfigReader(provider: CascadingProvider(providers: [.init(env), .init(file)]))
 ///
 /// // Tries "a.b.setting", then "a.setting", then "setting"
-/// config.string(forKey: "a.b.setting")
+/// let setting = config.string(forKey: "a.b.setting")
 ///
 /// // Tries "a.b.setting", then "a.setting"
-/// config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
+/// let scopedSetting = config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 /// ```
 ///
 /// A base scope cascade scope floor is the minimum number of base scopes that a
 /// key tried by the cascade keeps, which applies only to an upstream provider
-/// whose base scope is not empty, and only if the cascade scope floor is `0`,
+/// whose base scope is not empty & only if the cascade scope floor is `0`,
 /// because the cascade removes a base scope only after every other scope.
 /// ``CascadeScopeFloor/noCascading`` (the default) keeps the whole base scope,
 /// while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`,
@@ -124,7 +127,8 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 ///
 /// `CascadingProvider` removes every entry of the cascade context (the floors &
 /// the base scope) from the context before it queries its upstream providers.
-/// Wrap each other provider in the same ``ConfigReader`` using
+/// Wrap each other provider in the same ``ConfigReader`` (except another
+/// `CascadingProvider`, which would then ignore the cascade context) using
 /// ``ConfigProvider/ignoringCascadeContext()``, so that the cascade context
 /// cannot affect its lookups.
 ///
@@ -149,10 +153,10 @@ let baseScopeContextKeyPrefix = "cascadingConfiguration.baseScope"
 ///
 /// ## Watching & errors
 ///
-/// Fetching values, watching values & watching snapshots follow the same
-/// cascade as a synchronous lookup. When an upstream provider throws an error,
-/// `CascadingProvider` propagates it immediately instead of trying the next
-/// provider or key.
+/// Snapshots, fetching values, watching values & watching snapshots follow the
+/// same cascade as a synchronous lookup. When an upstream provider throws an
+/// error, `CascadingProvider` propagates it immediately instead of trying the
+/// next provider or key.
 @available(Configuration 1.0, *)
 public struct CascadingProvider: Sendable {
 	/// The upstream providers, in precedence order.
@@ -160,8 +164,8 @@ public struct CascadingProvider: Sendable {
 
 	/// Creates a new provider.
 	///
-	/// - Parameter providers: The upstream providers in precedence order (1st
-	///   provider has highest precedence for any single key).
+	/// - Parameter providers: The upstream providers in precedence order (the 1st
+	///   provider has the highest precedence for any single key).
 	/// - Precondition: `providers` must not be empty.
 	public init(providers: [UpstreamProvider]) {
 		precondition(!providers.isEmpty, "CascadingProvider requires at least 1 upstream provider")
@@ -173,10 +177,13 @@ public struct CascadingProvider: Sendable {
 
 @available(Configuration 1.0, *)
 public extension CascadingProvider {
-	/// The minimum number of leading scopes that a cascade keeps (e.g., `1`), so
-	/// `0` is a full cascade, while ``noCascading`` turns cascading off.
+	/// A minimum number of leading scopes that a cascade keeps (e.g., `1`): a
+	/// cascade scope floor does not count base scopes, while a base scope cascade
+	/// scope floor counts only base scopes. `0` keeps none of the scopes that the
+	/// floor counts, while ``noCascading`` keeps every one.
 	struct CascadeScopeFloor: Hashable, Sendable {
-		/// The floor that turns cascading off, because no key has as many scopes.
+		/// The floor that keeps every scope that it counts, because no key has as
+		/// many scopes.
 		public static let noCascading = Self(validRawValue: .max)
 
 		/// The minimum number of leading scopes that a cascade keeps.
@@ -193,13 +200,6 @@ public extension CascadingProvider {
 
 		private init(validRawValue: Int) {
 			rawValue = validRawValue
-		}
-
-		/// This floor, increased by `count` base scopes (e.g., `1` increased by `1`
-		/// is `2`), stopping at ``noCascading`` instead of overflowing.
-		func increased(by count: Int) -> Self {
-			let (sum, overflows) = rawValue.addingReportingOverflow(count)
-			return .init(validRawValue: overflows ? Self.noCascading.rawValue : sum)
 		}
 	}
 }
@@ -371,7 +371,7 @@ extension CascadingProvider: ConfigProvider {
 						.map { results in
 							// Return the 1st error or non-nil success from an upstream
 							// provider; if every upstream result is a nil success, return the
-							// most specific one
+							// 1st one
 							results.first { result in
 								if case let .success(lookupResult) = result {
 									lookupResult.value != nil
@@ -408,6 +408,8 @@ extension CascadingProvider: ConfigProvider {
 		}
 	}
 }
+
+// MARK: - Descriptions
 
 @available(Configuration 1.0, *)
 extension CascadingProvider: CustomStringConvertible {

@@ -29,26 +29,31 @@ jobs:
         fetch-depth: 0
         persist-credentials: false
 
+    - name: 🏷 Reject non-version tag
+      run: |
+        readonly number='(0|[1-9][[:digit:]]*)'
+        if [[ ! "${GITHUB_REF_NAME}" =~ "^${number}\.${number}\.${number}(-(alpha|beta|rc)\.${number})?$" ]]; then
+          printf $'::error::%s is not a version tag\n' "${GITHUB_REF_NAME}" >&2
+          exit 1
+        fi
+
     - name: 🖋 Verify tag has trusted SSH signature
+      env:
+        DEFAULT_BRANCH: ${{github.event.repository.default_branch}}
       run: |
         git fetch --force origin "${GITHUB_REF}:${GITHUB_REF}"
         if [[
           "$(git tag -l --format='%(contents:signature)' "${GITHUB_REF_NAME}")" != '-----BEGIN SSH SIGNATURE-----'*
         ]]; then
           printf $'::error::Tag %s does not have an SSH signature; delete the tag\n' "${GITHUB_REF_NAME}" >&2
-          exit 1
-        fi
-        git config gpg.ssh.allowedSignersFile .github/allowed_signers
-        if ! git verify-tag "${GITHUB_REF_NAME}"; then
-          printf $'::error::Tag %s SSH signature is not trusted; delete the tag\n' "${GITHUB_REF_NAME}" >&2
           exit 2
         fi
-
-    - name: 🏷 Reject non-version tag
-      run: |
-        readonly number='(0|[1-9][[:digit:]]*)'
-        if [[ ! "${GITHUB_REF_NAME}" =~ "^${number}\.${number}\.${number}(-(alpha|beta|rc)\.${number})?$" ]]; then
-          printf $'::error::%s is not a version tag\n' "${GITHUB_REF_NAME}" >&2
+        # Trusts only the signers that the default branch lists now, not those that the tagged commit lists, so that a
+        # revoked key cannot sign a tag of an older commit
+        git show "origin/${DEFAULT_BRANCH}:.github/allowed_signers" >"${RUNNER_TEMP}/allowed_signers"
+        git config gpg.ssh.allowedSignersFile "${RUNNER_TEMP}/allowed_signers"
+        if ! git verify-tag "${GITHUB_REF_NAME}"; then
+          printf $'::error::Tag %s SSH signature is not trusted; delete the tag\n' "${GITHUB_REF_NAME}" >&2
           exit 3
         fi
 

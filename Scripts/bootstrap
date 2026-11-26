@@ -16,7 +16,12 @@
 print_notice '👢 Bootstrapping' "${@}"
 
 if ! whence brew >/dev/null; then
-	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	# Downloads the installer before running it, so that a failed download fails the script
+	homebrew_installer="$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+	readonly homebrew_installer
+	/bin/bash -c "${homebrew_installer}"
+	# The installer does not add brew to PATH
+	path=(/opt/homebrew/bin /usr/local/bin "${path[@]}")
 fi
 
 brew update -q

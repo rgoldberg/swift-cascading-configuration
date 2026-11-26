@@ -70,8 +70,10 @@ which the package builds & passes all tests, as
      reported, skipping `Scripts/api-breakage` (via `-S api-breakage`) only for
      an intentional API break
   4. Manually check rules that linters do not enforce: Oxford commas; `second` &
-     adjective `one` written as digits; & judgment-based rules (e.g., 1 `return`
-     per function, `if` / `switch` expressions)
+     adjective `one` written as digits; `and` after a comma, which must separate
+     distinct clauses or end a parenthetical or a nonrestrictive clause; &
+     judgment-based rules (e.g., 1 `return` per function, `if` / `switch`
+     expressions)
 - **Commit messages:** Follow [commit message conventions](
     https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
   ), except end each subject line with a period (or with a colon iff the subject

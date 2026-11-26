@@ -13,6 +13,10 @@
 
 . "${0:A:h}/_setup-script"
 
+if (($# != 1)); then
+	print_error 'Usage: release-publish <version>'
+fi
+
 readonly version="${1}"
 
 export SCC_VERSION="${version}"
@@ -24,7 +28,9 @@ gh_repo_url="$(gh repo view --json url -q .url)"
 readonly gh_repo_url
 
 read -r target title < <(
-	gh release view "${version}" --json name,targetCommitish -q '.targetCommitish + " " + .name'
+	gh release view "${version}"\
+		--json isDraft,name,targetCommitish\
+		-q 'select(.isDraft) | .targetCommitish + " " + .name'
 ) || true
 readonly target title
 if [[ -z "${title}" ]]; then
@@ -32,6 +38,18 @@ if [[ -z "${title}" ]]; then
 fi
 
 git fetch -q "${gh_repo_url}.git" "${target}"
-git tag -s --cleanup=whitespace "${version}" -m "${title#"${version}": }" "${target}"
+# Reuses a local tag that an earlier run created (e.g., before a failed push), iff it matches the draft release
+if git rev-parse -q --verify "refs/tags/${version}" >/dev/null; then
+	if [[
+		"$(git rev-parse "${version}^{commit}")" != "${target}"
+		|| "$(git tag -l --format='%(contents:subject)' "${version}")" != "${title#"${version}": }"
+	]]; then
+		print_error 'Local tag %s does not match its draft release' "${version}"
+	fi
+else
+	git -c gpg.format=ssh tag -s --cleanup=whitespace "${version}" -m "${title#"${version}": }" "${target}"
+fi
+# Verifies the tag as tag-pushed.yaml does, so that a tag that it would reject never becomes public
+git -c gpg.ssh.allowedSignersFile=.github/allowed_signers verify-tag -- "${version}"
 printf $'Created signed tag %s for reference %s & pushing to %s\n\n' "${version}" "${target}" "${gh_repo_url}"
 git push "${gh_repo_url}.git" tag "${version}"

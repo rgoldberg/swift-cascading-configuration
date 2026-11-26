@@ -11,3 +11,5 @@ level: error
 nonword: true
 tokens:
 - (?<!,)\s\band\b(?!/)
+# A qualifier that follows a comma (e.g., ', and only if') never starts a distinct clause
+- ',\sand\sonly\s(?:after|before|down|if|once|up|when)\b'

@@ -101,8 +101,12 @@ ensure_command_available() {
 	local command
 	for command in "${@}"; do
 		if ! whence -- "${command}" >/dev/null; then
-			print_error $'%1$s is not installed. Run \'Scripts/bootstrap\' or \'brew install %1$s\'.' "${command}" ||
-				return_status=1
+			# Homebrew installs each tool only on macOS
+			if [[ "${OSTYPE}" == darwin* ]]; then
+				print_error $'%1$s is not installed. Run \'Scripts/bootstrap\' or \'brew install %1$s\'.' "${command}"
+			else
+				print_error '%s is not installed.' "${command}"
+			fi || return_status=1
 		fi
 	done
 	return "${return_status}"
@@ -121,8 +125,8 @@ filter_swiftformat_output() {
 	# shellcheck disable=SC2034
 	local -ar patterns=(
 		'Running SwiftFormat\.{3}'
-		'Reading (?:config|swift-version) file at .*'
-		'\x1b\[32mSwiftFormat completed in \d+(?:\.\d+)?s\.\x1b\[0m'
+		'Reading (config|swift-version) file at .*'
+		$'\e\\[32mSwiftFormat completed in [0-9]+(\\.[0-9]+)?s\\.\e\\[0m'
 		"${@}"
 	)
 	grep -vxE "${(j:|:)patterns}" || true

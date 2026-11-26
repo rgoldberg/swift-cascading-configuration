@@ -104,7 +104,6 @@
 --type-order                   beforeMarks,nestedType,staticProperty,staticPropertyWithBody,classPropertyWithBody,staticMethod,classMethod,overriddenProperty,swiftUIPropertyWrapper,instanceProperty,instancePropertyWithBody,computedProperty,instanceLifecycle,swiftUIProperty,swiftUIMethod,overriddenMethod,instanceMethod
 --typo-visibility              public
 --wrap-arguments               before-first
---wrap-closure-bodies
 --wrap-collections             before-first
 --wrap-conditions              before-first
 --wrap-effects                 never

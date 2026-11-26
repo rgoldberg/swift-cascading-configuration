@@ -22,9 +22,10 @@ public extension ConfigProvider {
 	/// value whose key has the same context.
 	///
 	/// Apply this method to every provider that you combine with a
-	/// ``CascadingProvider`` without passing it to that ``CascadingProvider``,
-	/// even one that ignores the context today, so that lookups keep working if
-	/// the provider starts to use the context:
+	/// ``CascadingProvider`` without passing it to that ``CascadingProvider``
+	/// (except another ``CascadingProvider``, which would then ignore the cascade
+	/// context), even one that ignores the context today, so that lookups keep
+	/// working if the provider starts to use the context:
 	///
 	/// ```swift
 	/// let config = ConfigReader(
@@ -38,8 +39,8 @@ public extension ConfigProvider {
 	/// let value = config.string(forKey: .init("a.setting", context: .cascadeScopeFloor(1)))
 	/// ```
 	///
-	/// - Returns: A provider which removes the cascade context from the context
-	///   of each key.
+	/// - Returns: A provider that removes the cascade context from the context of
+	///   each key.
 	func ignoringCascadeContext() -> some ConfigProvider {
 		KeyMappingProvider(upstream: self) { key in
 			var key = key

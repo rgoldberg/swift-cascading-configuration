@@ -1,9 +1,9 @@
 # Notices
 
-`CascadingConfiguration` is available under the [MIT License](LICENSE), except
-for the files below, which are copied from other projects that license them
-under the [Apache License 2.0](LICENSES/Apache-2.0.txt). Each file states its
-copyright in its header & any change to it in its `Vendored copy` comment.
+Swift Cascading Configuration is available under the [MIT License](LICENSE),
+except for the files below, which are copied from other projects that license
+them under the [Apache License 2.0](LICENSES/Apache-2.0.txt). Each file states
+its copyright in its header & any change to it in its `Vendored copy` comment.
 
 ## Swift Configuration
 

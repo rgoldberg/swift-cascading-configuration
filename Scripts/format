@@ -9,6 +9,10 @@
 # Automatically formats & fixes style violations using various tools. Exits 1 after the 1st tool that modifies any file,
 # so that each run's modifications can be reviewed 1 tool at a time.
 #
+# Usage: format [-L]
+#
+# -L: skip Layout formatting
+#
 # Please keep in sync with Scripts/lint.
 #
 
@@ -36,21 +40,20 @@ readonly original_hashes
 # Exits 1 iff any file's contents have changed since this script started (for tools that exit 0 after modifying files)
 exit_if_modified() {
 	if [[ "$(hash_files)" != "${original_hashes}" ]]; then
-		printf $'Modified files; review the modifications, then rerun Scripts/format\n'
-		exit 1
+		print_error 'Modified files; review the modifications, then rerun Scripts/format'
 	fi
 }
 
 print_section '🕊​ SwiftFormat'
 readonly -a swift_files=("${(@M)files:#*.swift}")
 if ((${#swift_files})); then
-	swiftformat --strict --color always "${swift_files[@]}" |& filter_swiftformat_output '0/\d+ files formatted\.'
+	swiftformat --strict --color always "${swift_files[@]}" |& filter_swiftformat_output '0/[0-9]+ files formatted\.'
 fi
 # Indent Swift code in Markdown by 4 spaces, because .editorconfig indents Markdown with spaces
 readonly -a markdown_files=("${(@M)files:#*.md}")
 if ((${#markdown_files})); then
 	swiftformat --strict --color always --indent 4 "${markdown_files[@]}" |&
-		filter_swiftformat_output '0/\d+ files formatted\.'
+		filter_swiftformat_output '0/[0-9]+ files formatted\.'
 fi
 
 print_section '🦅 SwiftLint'

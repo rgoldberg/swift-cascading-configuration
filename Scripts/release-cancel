@@ -13,6 +13,10 @@
 
 . "${0:A:h}/_setup-script"
 
+if (($# != 1)); then
+	print_error 'Usage: release-cancel <version>'
+fi
+
 readonly version="${1}"
 
 export SCC_VERSION="${version}"
@@ -22,6 +26,11 @@ unset SCC_VERSION
 if [[ "$(gh release view "${version}" --json isDraft -q .isDraft)" != true ]]; then
 	printf $'\n' >&2
 	print_error '%s is not a draft release' "${version}"
+fi
+
+# A pushed version tag may be valid, so its release must not be canceled, which would make tag-pushed.yaml fail
+if git ls-remote -q --exit-code "$(gh repo view --json url -q .url).git" "refs/tags/${version}" >/dev/null; then
+	print_error 'Tag %s is on GitHub, so its release cannot be canceled' "${version}"
 fi
 
 gh release delete "${version}" -y

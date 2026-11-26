@@ -52,8 +52,8 @@ print_section '🕊​ SwiftFormat'
 lint_swiftformat() {
 	swiftformat --lint --color always "${@}" |& filter_swiftformat_output\
 		'\(lint mode - no files will be changed\.\)'\
-		'0/\d+ files require formatting\.'\
-		'\x1b\[31mSource input did not pass lint check\.\x1b\[0m'
+		'0/[0-9]+ files require formatting\.'\
+		$'\e\\[31mSource input did not pass lint check\\.\e\\[0m'
 }
 if ((${#swift_files})); then
 	lint_swiftformat "${swift_files[@]}"
@@ -77,7 +77,7 @@ if ! [[ -v 'received_flag[-A]' ]]; then
 		=(
 			xcodebuild\
 				-scheme swift-cascading-configuration\
-				-destination "platform=macOS,arch=$(arch),variant=macos"\
+				-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
 				2>&1
 		) -- "${swift_files[@]}"
 	((exit_status |= ${?}))
@@ -86,7 +86,7 @@ if ! [[ -v 'received_flag[-A]' ]]; then
 		=(
 			xcodebuild\
 				-scheme swift-cascading-configuration\
-				-destination "platform=macOS,arch=$(arch),variant=macos"\
+				-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
 				build-for-testing\
 				2>&1
 		)\
@@ -115,7 +115,8 @@ yamllint -s -- "${(@M)files:#(*.yaml|*.yml|(*/|).yamllint)}"
 ((exit_status |= ${?}))
 
 print_section '🌳 Git'
-git diff --check
+# Checks every tracked file (not only unstaged changes) by comparing it with the empty tree
+git diff --check "$(git hash-object -t tree /dev/null)"
 ((exit_status |= ${?}))
 
 print_section '💤 Zsh'
@@ -123,6 +124,37 @@ for script in "${script_files[@]}"; do
 	/bin/zsh -fn "${script}"
 	((exit_status |= ${?}))
 done
+
+print_section '📜 Script Conventions'
+# Reports each violation of .claude/rules/scripting.md that no other linter detects
+# shellcheck disable=SC2016
+readonly setup_line='. "${0:A:h}/_setup-script"'
+for script in "${script_files[@]}"; do
+	# shellcheck disable=SC2034
+	script_lines=("${(@f)"$(<"${script}")"}")
+	if [[ "${script_lines[1]}" != '#!/bin/zsh -f' ]]; then
+		print_error '%s does not start with #!/bin/zsh -f' "${script}"
+		((exit_status |= 1))
+	fi
+	if [[ "${script}" != Scripts/_setup-script ]] && ! ((${script_lines[(Ie)${setup_line}]})); then
+		print_error '%s does not source Scripts/_setup-script' "${script}"
+		((exit_status |= 1))
+	fi
+done
+# Each rm instead of trash, each cp without -c & each error printed in red instead of via print_error
+if git grep -nP '(^\s*|[;|&(]\s*)(rm|cp(?!\s+-c\b))\s|\\e\[1;9?1m' --\
+	Scripts .github/workflows ':!Scripts/_setup-script'
+then
+	print_error 'Use trash instead of rm, cp -c instead of cp & print_error instead of printing an error in red'
+	((exit_status |= 1))
+fi
+
+print_section '🕊​ SwiftFormat Options'
+# SwiftFormat reads an option without a value as an empty value (e.g., --wrap-closure-bodies as no function at all)
+if grep -nE '^--[a-z-]+[[:space:]]*$' .swiftformat; then
+	print_error 'Give each SwiftFormat option in .swiftformat a value'
+	((exit_status |= 1))
+fi
 
 print_section '🐙 ActionLint'
 actionlint -shellcheck shellcheck -- "${(@M)files:#.github/workflows/[^/]##.(yaml|yml)}"
@@ -141,7 +173,7 @@ print_section '🚷 Non-Executables'
 # shellcheck disable=SC1036,SC2206
 readonly -a non_executables=(${^script_files}(N^f+111))
 if (("${#non_executables[@]}")); then
-	printf $'\e[1;91m%s\e[0m\n' "${non_executables[@]}"
+	print_error 'Not executable: %s' "${(j:, :)non_executables}"
 	((exit_status |= 1))
 fi
 

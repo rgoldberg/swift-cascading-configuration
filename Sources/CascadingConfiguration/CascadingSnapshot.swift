@@ -25,7 +25,7 @@ extension CascadingSnapshot: ConfigSnapshot {
 	/// The human-readable name of the snapshot, which matches that of the
 	/// provider that created it.
 	var providerName: String {
-		"CascadingProvider[providers: \(snapshots.map(\.providerName).joined(separator: ", "))]"
+		"CascadingProvider[providers: \(upstreams.map(\.provider.providerName).joined(separator: ", "))]"
 	}
 
 	/// Returns the value for the specified key, or for the most specific
@@ -33,8 +33,8 @@ extension CascadingSnapshot: ConfigSnapshot {
 	/// - Parameters:
 	///   - key: The configuration key to look up.
 	///   - type: The expected configuration value type.
-	/// - Returns: The 1st non-nil lookup result, or the most specific nil lookup
-	///   result if no upstream snapshot has a value.
+	/// - Returns: The 1st non-nil lookup result, or the result of the 1st lookup
+	///   if no upstream snapshot has a value.
 	/// - Throws: The 1st error thrown by an upstream snapshot.
 	func value(forKey key: AbsoluteConfigKey, type: ConfigType) throws -> LookupResult {
 		try cascadingValue(of: cascadingLookups(forKey: key, upstreams: upstreams)) { lookup in

@@ -6,9 +6,9 @@
 # Copyright © 2026 Ross Goldberg
 # SPDX-License-Identifier: MIT
 #
-# Runs each check named in ${@} (by default, every check), in the order of ${all_checks}, except each check named by a
-# -S option (e.g., -S api-breakage), continuing after a failed check, then reports each failed check. Passes the flags
-# of Scripts/lint (e.g., -A) to Scripts/lint.
+# Runs each check named in ${@} (by default, each check in ${all_checks}), in the order of ${all_checks}, except each
+# check named by a -S option (e.g., -S api-breakage), continuing after a failed check, then reports each failed check.
+# Passes the flags of Scripts/lint (e.g., -A) to Scripts/lint.
 #
 
 . "${0:A:h}/_setup-script"
@@ -16,7 +16,7 @@
 print_notice '✅ Checking' "${@}"
 
 zmodload zsh/zutil
-zparseopts -D -F -a lint_flags A L V S+:=skip_options
+zparseopts -D -E -F -a lint_flags A L V S+:=skip_options
 readonly -a lint_flags skip_options
 
 readonly -a all_checks=(lint build test docs api-breakage)
@@ -27,7 +27,11 @@ readonly -a selected_checks=("${@:-${all_checks[@]}}")
 # shellcheck disable=SC2206
 readonly -a unknown_checks=(${(u)selected_checks:|all_checks} ${(u)skipped_checks:|all_checks})
 if (("${#unknown_checks}")); then
-	print_error 'Unknown checks: %s' "${(j:, :)unknown_checks}"
+	print_error 'Unknown check%s: %s%s%s'\
+		"${unknown_checks[2]+s}"\
+		"${(j:, :)unknown_checks[1,-2]}"\
+		"${unknown_checks[2]+ & }"\
+		"${unknown_checks[-1]}"
 fi
 
 typeset -a failed_checks=()

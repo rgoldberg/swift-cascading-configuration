@@ -74,6 +74,7 @@ for line in "${(@f)"$(<.editorconfig)"}"; do
 		max_line_lengths+=("${match[1]}")
 	fi
 done
+readonly -a max_line_length_patterns max_line_lengths
 
 # Reports the finding formed by formatting ${@:3} like printf, at line ${2} of file ${1}, as an error annotation in a
 # GHA workflow, or else prefixed with ${1}:${2}:, and makes the script exit 1
@@ -139,7 +140,8 @@ tokenize() {
 wrap_link_urls() {
 	local -a wrapped=()
 	local token joined
-	local -i index width="${#${1//$'\t'/  }}"
+	local -i index
+	local -ri width="${#${1//$'\t'/  }}"
 	for ((index = 1; index <= ${#tokens}; ++index)); do
 		token="${tokens[index]}"
 		if [[ "${token}" == ${link_url_mark}* ]] && ((${#wrapped} && index < ${#tokens})); then
@@ -206,7 +208,7 @@ fill() {
 # Replaces source lines ${2}–${3} of file ${1} with the filled lines iff they differ & are not overfull (a line wider
 # than the limit holds only 1 token, which cannot be split)
 apply_filled() {
-	local -a old_lines=("${(@)source_lines[${2},${3}]}")
+	local -ar old_lines=("${(@)source_lines[${2},${3}]}")
 	if ((is_overfull)) || [[ "${(pj:\n:)filled}" == "${(pj:\n:)old_lines}" ]]; then
 		result_lines+=("${old_lines[@]}")
 	else

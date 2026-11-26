@@ -50,15 +50,15 @@ jobs:
         TITLE: ${{inputs.title}}
       run: |
         if (("${#TITLE}" > 64)); then
-          printf $'::error::Title \'%s\' contains more than 64 characters\n' "${(q)TITLE}" >&2
+          printf $'::error::Title %s contains more than 64 characters\n' "${(q+)TITLE}" >&2
           exit 2
         fi
         if [[ "${TITLE}" =~ [[:cntrl:]] ]]; then
-          printf $'::error::Title \'%s\' contains control characters\n' "${(q)TITLE}" >&2
+          printf $'::error::Title %s contains control characters\n' "${(q+)TITLE}" >&2
           exit 3
         fi
         if [[ "${TITLE}" = (' '*|*' ') ]]; then
-          printf $'::error::Title \'%s\' begins or ends with a space\n' "${(q)TITLE}" >&2
+          printf $'::error::Title %s begins or ends with a space\n' "${(q+)TITLE}" >&2
           exit 4
         fi
 
@@ -125,24 +125,15 @@ jobs:
         fi
 
   release-start:
-    if: ${{!github.event.repository.fork}}
+    # Skipped iff validate-inputs is skipped (e.g., in a fork)
     needs: validate-inputs
     runs-on: xcode-27
     permissions:
       contents: write
     steps:
-    - name: 🛒 Checkout repo
-      env:
-        GIT_CONFIG_COUNT: 1
-        GIT_CONFIG_KEY_0: init.defaultBranch
-        GIT_CONFIG_VALUE_0: ${{github.event.repository.default_branch}}
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        ref: ${{needs.validate-inputs.outputs.commit_sha}}
-        persist-credentials: false
-
     - name: 📝 Reject existing release
       env:
+        GH_REPO: ${{github.repository}}
         GH_TOKEN: ${{github.token}}
         VERSION: ${{inputs.version}}
       run: |
@@ -154,6 +145,7 @@ jobs:
     - name: 📝 Create draft release
       env:
         COMMIT_SHA: ${{needs.validate-inputs.outputs.commit_sha}}
+        GH_REPO: ${{github.repository}}
         GH_TOKEN: ${{github.token}}
         TITLE: ${{inputs.title}}
         VERSION: ${{inputs.version}}

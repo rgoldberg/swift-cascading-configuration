@@ -9,8 +9,8 @@
 import Configuration
 import Synchronization
 
-/// An upstream provider that records every key that it is asked for, in dot
-/// notation, and has no values.
+/// An upstream provider, which is its own snapshot, that records every key that
+/// it is asked for, in dot notation, and has no values.
 @available(Configuration 1.0, *)
 final class KeyRecordingProvider {
 	/// The keys looked up so far, in lookup order.
@@ -18,7 +18,7 @@ final class KeyRecordingProvider {
 }
 
 @available(Configuration 1.0, *)
-extension KeyRecordingProvider: ConfigProvider {
+extension KeyRecordingProvider: ConfigSnapshot {
 	var providerName: String {
 		"KeyRecordingProvider"
 	}
@@ -28,7 +28,10 @@ extension KeyRecordingProvider: ConfigProvider {
 		keys.withLock { $0.append(encodedKey) }
 		return .init(encodedKey: encodedKey, value: nil)
 	}
+}
 
+@available(Configuration 1.0, *)
+extension KeyRecordingProvider: ConfigProvider {
 	func fetchValue(forKey key: AbsoluteConfigKey, type: ConfigType) -> LookupResult {
 		value(forKey: key, type: type)
 	}
@@ -44,7 +47,7 @@ extension KeyRecordingProvider: ConfigProvider {
 	}
 
 	func snapshot() -> any ConfigSnapshot {
-		InMemoryProvider(values: [:]).snapshot()
+		self
 	}
 
 	func watchSnapshot<Return: ~Copyable>(

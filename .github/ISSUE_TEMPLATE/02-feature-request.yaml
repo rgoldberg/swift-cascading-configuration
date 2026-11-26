@@ -25,6 +25,7 @@ body:
     required: true
 - type: markdown
   attributes:
+    # An HTML comment joins each wrapped line, because GitHub renders each newline as a line break
     value: |
       ## Console command & output formatting instructions
 

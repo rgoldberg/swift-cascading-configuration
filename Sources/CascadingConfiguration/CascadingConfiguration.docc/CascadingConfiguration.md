@@ -20,7 +20,9 @@ specific keys when its upstream providers have no value for the requested key
 
 ### Swift Configuration
 
-The symbols that `CascadingConfiguration` re-exports from Swift Configuration.
+The symbols that `CascadingConfiguration` re-exports from Swift Configuration
+without a trait; it re-exports each symbol that a trait enables (e.g.,
+`JSONSnapshot`), too.
 
 - ``AbsoluteConfigKey``
 - ``AccessEvent``

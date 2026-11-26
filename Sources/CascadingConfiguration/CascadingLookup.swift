@@ -38,19 +38,20 @@ func cascadingLookups(
 	guard let name = key.components.last else {
 		return baseScopes.enumerated().map { (upstreamIndex: $0, key: .init($1, context: context)) }
 	}
+	let scope = key.components.dropLast()
 	let plans = zip(upstreams, baseScopes).map { upstream, baseScope in
-		let fullScope = baseScope + key.components.dropLast()
-		let cascadeScopeFloor = cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor
+		let cascadeScopeFloor = (cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor).rawValue
 		// The cascade removes a base scope only after every other scope, so a base
 		// scope cascade scope floor applies only if no other scope must be kept
-		let floor =
-			cascadeScopeFloor.rawValue > 0 || baseScope.isEmpty
-				? cascadeScopeFloor.increased(by: baseScope.count).rawValue
+		return (
+			scope: baseScope + scope,
+			floor: cascadeScopeFloor > 0
+				? baseScope.count + min(cascadeScopeFloor, scope.count)
 				: min(
 					(cascadeContext.baseScopeCascadeScopeFloor ?? upstream.baseScopeCascadeScopeFloor).rawValue,
 					baseScope.count,
-				)
-		return (scope: fullScope, floor: min(floor, fullScope.count))
+				),
+		)
 	}
 	return (0...(plans.lazy.map { $0.scope.count - $0.floor }.max() ?? 0))
 		.flatMap { step in
@@ -71,8 +72,8 @@ func cascadingLookups(
 /// - Parameters:
 ///   - lookups: The lookups to try, in order. Must not be empty.
 ///   - lookUp: A closure that runs a lookup.
-/// - Returns: The 1st non-nil lookup result, or the most specific nil lookup
-///   result if no lookup finds a value.
+/// - Returns: The 1st non-nil lookup result, or the result of the 1st lookup if
+///   no lookup finds a value.
 /// - Throws: The 1st error thrown by the closure.
 @available(Configuration 1.0, *)
 func cascadingValue<LookUpError: Error>(

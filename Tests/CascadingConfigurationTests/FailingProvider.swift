@@ -8,7 +8,8 @@
 
 import Configuration
 
-/// An upstream provider that throws for 1 key & has no value for any other.
+/// An upstream provider, which is its own snapshot, that throws for 1 key & has
+/// no value for any other.
 @available(Configuration 1.0, *)
 struct FailingProvider {
 	enum TestError: Error {
@@ -20,7 +21,7 @@ struct FailingProvider {
 }
 
 @available(Configuration 1.0, *)
-extension FailingProvider: ConfigProvider {
+extension FailingProvider: ConfigSnapshot {
 	var providerName: String {
 		"FailingProvider"
 	}
@@ -31,7 +32,10 @@ extension FailingProvider: ConfigProvider {
 		}
 		return .init(encodedKey: key.description, value: nil)
 	}
+}
 
+@available(Configuration 1.0, *)
+extension FailingProvider: ConfigProvider {
 	func fetchValue(forKey key: AbsoluteConfigKey, type: ConfigType) throws(TestError) -> LookupResult {
 		try value(forKey: key, type: type)
 	}
@@ -47,7 +51,7 @@ extension FailingProvider: ConfigProvider {
 	}
 
 	func snapshot() -> any ConfigSnapshot {
-		InMemoryProvider(values: [:]).snapshot()
+		self
 	}
 
 	func watchSnapshot<Return: ~Copyable>(

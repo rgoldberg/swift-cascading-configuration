@@ -36,3 +36,12 @@ indent_style = space
 # Keeps each license text verbatim
 [LICENSES/*]
 indent_style = unset
+
+# Keeps each vendored file verbatim
+[{Sources,Tests}/*/Vendored/**]
+indent_size = unset
+indent_style = unset
+insert_final_newline = unset
+max_line_length = unset
+tab_width = unset
+trim_trailing_whitespace = unset

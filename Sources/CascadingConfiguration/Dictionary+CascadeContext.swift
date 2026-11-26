@@ -17,7 +17,7 @@ public import Configuration
 ///
 /// ```swift
 /// // Looks up only GIT_A_PAGER in an environment provider whose base scope is ["tool"]
-/// config.string(forKey: .init("a.pager", context: .cascadeScopeFloor(1).baseScope(["git"])))
+/// let pager = config.string(forKey: .init("a.pager", context: .cascadeScopeFloor(1).baseScope(["git"])))
 /// ```
 @available(Configuration 1.0, *)
 public extension [String: ConfigContextValue] {
@@ -26,7 +26,7 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Tries "a.b.setting", then "a.setting"
-	/// config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
+	/// let setting = config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 	/// ```
 	///
 	/// - Parameter floor: The minimum number of scopes, not counting base scopes,
@@ -42,7 +42,7 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
-	/// config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
+	/// let pager = config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 	/// ```
 	///
 	/// - Parameter floor: The minimum number of base scopes that a key tried by
@@ -60,7 +60,7 @@ public extension [String: ConfigContextValue] {
 	///
 	/// ```swift
 	/// // Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-	/// config.string(forKey: .init("pager", context: .baseScope([])))
+	/// let pager = config.string(forKey: .init("pager", context: .baseScope([])))
 	/// ```
 	///
 	/// - Parameter baseScope: The base scope of the key.

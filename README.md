@@ -35,12 +35,12 @@ let config = ConfigReader(
     ),
 )
 
-// Tries, in order:
-// 1. TOOL_INSTALL_LIMIT from the environment
-// 2. "install.limit" from the file
-// 3. TOOL_LIMIT from the environment
-// 4. "limit" from the file
-config.int(forKey: "install.limit")
+/// Tries, in order:
+/// 1. TOOL_INSTALL_LIMIT from the environment
+/// 2. "install.limit" from the file
+/// 3. TOOL_LIMIT from the environment
+/// 4. "limit" from the file
+let limit = config.int(forKey: "install.limit")
 ```
 
 `FileProvider<JSONSnapshot>` needs the `JSON` trait of Swift Configuration (see
@@ -53,35 +53,36 @@ config.int(forKey: "install.limit")
 
 A cascading lookup treats every component of a key except the last as a scope.
 Key specificity takes precedence over provider order: each step of a cascade
-removes 1 more scope from the key of every upstream provider, then queries every
-upstream provider, in the order in which they were provided, before the next
-step.
+removes 1 more scope from the key of every upstream provider, then queries each
+upstream provider whose floors (see [Limiting the
+Cascade](#limiting-the-cascade)) allow its shorter key, in the order in which
+they were provided, before the next step.
 
 ### Base Scopes
 
 An upstream provider can have a base scope (e.g., `["tool"]`): scopes that are
 prepended to every key that it is asked for, like a namespace. Unlike a key
 prefix (see `ConfigProvider.prefixKeys(with:)`), a base scope can be removed by
-a cascade, but only once no other scopes remain, and only down to a separate
-floor: the base scope cascade scope floor, the minimum number of base scopes
-that a key tried by the cascade keeps. That floor applies only if the cascade
-scope floor (see [Limiting the Cascade](#limiting-the-cascade)) is `0`; its
-default, `.noCascading`, keeps the whole base scope, while `0` lets the cascade
-remove it (e.g., `0` reaches `PAGER` for `pager`, with base scope `["tool"]`). A
-key overrides that floor via its context:
+a cascade, but only once no other scopes remain & only down to a separate floor:
+the base scope cascade scope floor, the minimum number of base scopes that a key
+tried by the cascade keeps. That floor applies only if the cascade scope floor
+(see [Limiting the Cascade](#limiting-the-cascade)) is `0`; the default base
+scope cascade scope floor, `.noCascading`, keeps the whole base scope, while `0`
+lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`, with base
+scope `["tool"]`). A key overrides that floor via its context:
 
 ```swift
-// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
-config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
+/// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
+let pager = config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 ```
 
-A key overrides the base scope of every upstream provider via its context, too:
-an empty base scope removes every base scope, while any other base scope
-replaces each base scope that is not empty:
+A key overrides the base scope of upstream providers via its context, too: an
+empty base scope removes every base scope, while any other base scope replaces
+each base scope that is not empty:
 
 ```swift
-// Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
-config.string(forKey: .init("pager", context: .baseScope([])))
+/// Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
+let pager = config.string(forKey: .init("pager", context: .baseScope([])))
 ```
 
 ### Limiting the Cascade
@@ -89,11 +90,13 @@ config.string(forKey: .init("pager", context: .baseScope([])))
 A cascade scope floor is the minimum number of scopes, not counting base scopes,
 that a key tried by the cascade keeps: `0` (the default) cascades until no
 scopes remain, while `.noCascading` turns cascading off. Each upstream provider
-has its own floor, which a key overrides via its context:
+has its own floors (e.g.,
+`.init(env, cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: 0)`), which a key
+overrides via its context:
 
 ```swift
-// Tries "a.b.setting", then "a.setting"
-config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
+/// Tries TOOL_A_B_SETTING, "a.b.setting", TOOL_A_SETTING, then "a.setting"
+let setting = config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 ```
 
 Chain these context functions to set several entries (e.g.,
@@ -108,7 +111,8 @@ cascade finds no value.
 
 `CascadingProvider` removes the cascade context (the floors & the base scope)
 from the context of each key before it queries its upstream providers; wrap each
-other provider in the same `ConfigReader` with `ignoringCascadeContext()`, so
+other provider in the same `ConfigReader` (except another `CascadingProvider`,
+which would then ignore the cascade context) with `ignoringCascadeContext()`, so
 that the cascade context cannot affect its lookups:
 
 ```swift
@@ -126,8 +130,8 @@ Configuration (see [Traits](#traits)).
 
 ### Watching & Errors
 
-Fetching values, watching values & watching snapshots follow the same cascade as
-a synchronous lookup. When an upstream provider throws an error,
+Snapshots, fetching values, watching values & watching snapshots follow the same
+cascade as a synchronous lookup. When an upstream provider throws an error,
 `CascadingProvider` propagates it immediately instead of trying the next
 provider or key.
 
@@ -172,9 +176,9 @@ Configuration directly:
 | Build       | Swift 6.2 (6.3 for Android) or Xcode 26                                     |
 | Run         | macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, Linux, or Android API 28 |
 
-`CascadingConfiguration` declares no `platforms`, so a package that supports
-older platforms can depend on it; each of its declarations is available wherever
-Swift Configuration is.
+Swift Cascading Configuration declares no `platforms`, so a package that
+supports older platforms can depend on `CascadingConfiguration`, each of whose
+declarations is available wherever Swift Configuration is.
 
 ## Contributing
 
@@ -184,6 +188,6 @@ in the [security policy](SECURITY.md).
 
 ## License
 
-`CascadingConfiguration` is available under the [MIT License](LICENSE), except
-for the files copied from other projects, which the [notices](NOTICE.md) list
-with their licenses.
+Swift Cascading Configuration is available under the [MIT License](LICENSE),
+except for the files copied from other projects, which the [notices](NOTICE.md)
+list with their licenses.

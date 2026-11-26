@@ -16,7 +16,7 @@
 #
 # -r: also delete Package.resolved
 #
-# -x: also delete .swiftpm
+# -x: also delete .swiftpm & .index-build
 #
 
 . "${0:A:h}/_setup-script"
@@ -33,6 +33,10 @@ fi
 if [[ -v 'received_flag[-r]' && -e Package.resolved ]]; then
 	trash Package.resolved
 fi
-if [[ -v 'received_flag[-x]' && -d .swiftpm ]]; then
-	trash .swiftpm
+if [[ -v 'received_flag[-x]' ]]; then
+	# shellcheck disable=SC1036
+	readonly -a generated_folders=(.swiftpm(N/) .index-build(N/))
+	if (("${#generated_folders}")); then
+		trash "${generated_folders[@]}"
+	fi
 fi

@@ -86,31 +86,37 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `get value error halts cascading`() throws {
+		let recorder = KeyRecordingProvider()
 		#expect(throws: FailingProvider.TestError.self) {
 			try CascadingProvider(
 				providers: [
 					.init(FailingProvider(failingKey: ["a", "setting"])),
+					.init(recorder),
 					.init(InMemoryProvider(values: ["setting": "unreachable"])),
 				],
 			).value(forKey: ["a", "setting"], type: .string)
 		}
+		#expect(recorder.keys.withLock(\.self).isEmpty)
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func `fetch value error halts cascading`() async {
+		let recorder = KeyRecordingProvider()
 		await #expect(throws: FailingProvider.TestError.self) {
 			try await CascadingProvider(
 				providers: [
 					.init(FailingProvider(failingKey: ["a", "setting"])),
+					.init(recorder),
 					.init(InMemoryProvider(values: ["setting": "unreachable"])),
 				],
 			).fetchValue(forKey: ["a", "setting"], type: .string)
 		}
+		#expect(recorder.keys.withLock(\.self).isEmpty)
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
+	@Test(.timeLimit(.minutes(1)))
 	func `watch value error halts cascading`() async throws {
 		try await CascadingProvider(
 			providers: [
@@ -126,10 +132,40 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
+	@Test(.timeLimit(.minutes(1)))
+	func `watch value prefers more specific value over less specific error`() async throws {
+		try await CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(values: ["a.setting": "specific"])),
+				.init(FailingProvider(failingKey: ["setting"])),
+			],
+		).watchValue(forKey: ["a", "setting"], type: .string) { updates in
+			var iterator = updates.makeAsyncIterator()
+			let result = try await iterator.next(isolation: #isolation)?.get()
+			#expect(try result?.value?.content.asString == "specific")
+		}
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(.timeLimit(.minutes(1)))
+	func `watch value without value returns result of 1st lookup`() async throws {
+		try await CascadingProvider(
+			providers: [
+				.init(InMemoryProvider(name: "1st", values: [:])),
+				.init(InMemoryProvider(name: "2nd", values: [:]), baseScope: ["tool"]),
+			],
+		).watchValue(forKey: ["a", "setting"], type: .string) { updates in
+			var iterator = updates.makeAsyncIterator()
+			let result = try await iterator.next(isolation: #isolation)?.get()
+			#expect(result?.value == nil)
+			#expect(result?.encodedKey == "a.setting")
+		}
+	}
+
+	@available(Configuration 1.0, *)
 	@Test(
 		arguments: [
 			(nil, "1 scope"),
-			(-1, "1 scope"),
 			(0, "1 scope"),
 			(1, "1 scope"),
 			(2, nil),
@@ -200,7 +236,7 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
+	@Test(.timeLimit(.minutes(1)))
 	func `cascade scope floor limits watch`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
@@ -260,8 +296,10 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test
 	func `cascade scope floor raw value`() {
+		#expect(CascadingProvider.CascadeScopeFloor(rawValue: 0) == 0)
 		#expect(CascadingProvider.CascadeScopeFloor(rawValue: 1) == 1)
 		#expect(CascadingProvider.CascadeScopeFloor(rawValue: -1) == nil)
+		#expect(CascadingProvider.CascadeScopeFloor(rawValue: .max) == .noCascading)
 		#expect(CascadingProvider.CascadeScopeFloor.noCascading.rawValue == .max)
 	}
 
@@ -285,7 +323,17 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
+	@Test(arguments: [AbsoluteConfigKey(["a", "setting"]), ["setting"]])
+	func `fetch value fetches from upstreams`(fetchableKey: AbsoluteConfigKey) async throws {
+		// The upstream provider has the value only when fetching it, for either the
+		// requested key or a cascaded key
+		let result = try await CascadingProvider(providers: [.init(FetchOnlyProvider(fetchableKey: fetchableKey))])
+			.fetchValue(forKey: ["a", "setting"], type: .string)
+		#expect(try result.value?.content.asString == "fetched")
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(.timeLimit(.minutes(1)))
 	func `watch value cascades`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
@@ -308,7 +356,7 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
+	@Test(.timeLimit(.minutes(1)))
 	func `watch value key specificity over provider order`() async throws {
 		let first = MutableInMemoryProvider(name: "1st", initialValues: ["setting": "1st general"])
 		let second = MutableInMemoryProvider(name: "2nd", initialValues: [:])
@@ -340,14 +388,15 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
-	func `watch snapshot cascades`() async throws {
-		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
+	@Test(.timeLimit(.minutes(1)))
+	func `watch snapshot key specificity over provider order`() async throws {
+		let first = MutableInMemoryProvider(name: "1st", initialValues: ["setting": "1st general"])
+		let second = MutableInMemoryProvider(name: "2nd", initialValues: ["setting": "2nd general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let future1 = TestFuture<String?>(name: "future1")
 			let future2 = TestFuture<String?>(name: "future2")
 			group.addTask {
-				try await CascadingProvider(providers: [.init(upstream)]).watchSnapshot { updates in
+				try await CascadingProvider(providers: [.init(first), .init(second)]).watchSnapshot { updates in
 					var iterator = updates.makeAsyncIterator()
 					let key = AbsoluteConfigKey(["a", "setting"])
 					try await future1.fulfill(
@@ -358,12 +407,44 @@ struct CascadingProviderTests {
 					)
 				}
 			}
-			await #expect(future1.value == "general")
+			// Within 1 key, the 1st provider's value beats the 2nd provider's value
+			await #expect(future1.value == "1st general")
 
-			upstream.setValue("specific", forKey: "a.setting")
-			await #expect(future2.value == "specific")
+			// The 2nd provider's specific value beats the 1st provider's general
+			// value
+			second.setValue("2nd specific", forKey: "a.setting")
+			await #expect(future2.value == "2nd specific")
 			try await group.waitForAll()
 		}
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(.timeLimit(.minutes(1)))
+	func `canceling watch value ends updates`() async throws {
+		let upstream = MutableInMemoryProvider(initialValues: [:])
+		let future = TestFuture<Void>(name: "future")
+		let task = Task {
+			try await CascadingProvider(providers: [.init(upstream), .init(upstream)])
+				.watchValue(forKey: ["a", "setting"], type: .string) { updates in
+					var iterator = updates.makeAsyncIterator()
+					_ = try await iterator.next()
+					future.fulfill(())
+					// Ends iff canceling the task ends the updates
+					while try await iterator.next() != nil {}
+				}
+		}
+		await future.value
+		task.cancel()
+		try await task.value
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
+	func `snapshot ignores later upstream changes`() throws {
+		let upstream = MutableInMemoryProvider(initialValues: ["setting": "old"])
+		let snapshot = CascadingProvider(providers: [.init(upstream)]).snapshot()
+		upstream.setValue("new", forKey: "setting")
+		#expect(try snapshot.value(forKey: ["a", "setting"], type: .string).value?.content.asString == "old")
 	}
 
 	@available(Configuration 1.0, *)

@@ -1,0 +1,14 @@
+#
+# .vale/scc/NonPrefix.yml
+# swift-cascading-configuration
+#
+# Vale 3.28.1
+#
+---
+extends: existence
+message: Join the prefix 'non' to its word (e.g., 'nonempty')
+level: error
+ignorecase: true
+nonword: true
+tokens:
+- \bnon\s(?=[a-z])
