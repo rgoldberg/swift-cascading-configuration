@@ -162,3 +162,14 @@ Each item is a change that was rejected, with its reason.
   latest version known to work, which a newer version need not break
 - A `timeout-minutes` for a workflow job, because a maintainer starts each rare
   run & can cancel it
+- Dependabot updates of Swift packages, because nightly CI tests the newest
+  release within each version range & `outdated-dependencies.yaml` reports each
+  release outside it, while, without `Package.resolved`, Dependabot could only
+  propose raising a `from:`, which [Minimum Versions](#minimum-versions) forbids
+- Pinning a tool that nightly CI runs (e.g., a Homebrew formula, Swiftly, or a
+  Swift container's patch version) to an exact version, because running the
+  latest one reveals each breaking release promptly; only what Dependabot
+  updates (e.g., an action) is pinned
+- Installing Swiftly via Homebrew in CI, because the unversioned `swiftly.pkg`
+  is already the latest one, needs no build & needs no Homebrew on an x86_64
+  runner
