@@ -173,3 +173,5 @@ Each item is a change that was rejected, with its reason.
 - Installing Swiftly via Homebrew in CI, because the unversioned `swiftly.pkg`
   is already the latest one, needs no build & needs no Homebrew on an x86_64
   runner
+- Testing Swift 6.3 on fewer macOS runners, because dropping its 3 jobs that do
+  not run on `macos-26` would save only about 5 minutes per run
