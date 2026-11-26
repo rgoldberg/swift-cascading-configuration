@@ -172,10 +172,11 @@ Configuration directly:
 
 ## Requirements
 
-| Requirement | Minimum                                                                     |
-| ----------- | --------------------------------------------------------------------------- |
-| Build       | Swift 6.2 (6.3 for Android) or Xcode 26                                     |
-| Run         | macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, Linux, or Android API 28 |
+| Requirement         | Minimum                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| Build               | Swift 6.2 (6.3 for Android) or Xcode 26                                              |
+| Run                 | macOS 15, iOS 18, tvOS 18, watchOS 11, visionOS 2, Linux, Windows, or Android API 28 |
+| Swift Configuration | 1.0.2 (1.3.0 for Windows)                                                            |
 
 Swift Cascading Configuration declares no `platforms`, so a package that
 supports older platforms can depend on `CascadingConfiguration`, each of whose
