@@ -108,7 +108,7 @@ markdownlint-cli2 -- "${markdown_files[@]/#/:}"
 
 if ! [[ -v 'received_flag[-V]' ]]; then
 	print_section '📖 Vale'
-	vale --output=line -- "${markdown_files[@]}" "${swift_files[@]}"
+	vale --output=line -- "${markdown_files[@]}" "${swift_files[@]}" "${(@M)files:#*.y(a|)ml}"
 	((exit_status |= ${?}))
 fi
 

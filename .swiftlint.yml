@@ -50,7 +50,7 @@ custom_rules:
     match_kinds: [doccomment, doccomment.field, comment.url]
     message: End each sentence of a DocC (`///`) comment with a period
   non_prefix:
-    name: Non Prefix
+    name: Unjoined Prefix
     # Matches every kind, because Vale does not read code (e.g., a raw identifier test name)
     regex: \b[Nn]on (?=[a-z])
     message: Join the prefix `non` to its word (e.g., `nonempty`)
