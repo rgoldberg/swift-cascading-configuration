@@ -1,0 +1,11 @@
+#
+# .github/zizmor.yaml
+# swift-cascading-configuration
+#
+# zizmor 1.33.1
+#
+---
+rules:
+  # CLAUDE.md "Rejected Changes" rejects a Dependabot cooldown
+  dependabot-cooldown:
+    disable: true

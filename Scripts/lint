@@ -38,7 +38,8 @@ ensure_command_available\
 	swiftformat\
 	swiftlint\
 	${received_flag[-V]-vale}\
-	yamllint ||
+	yamllint\
+	zizmor ||
 	exit
 
 readonly -a files=("${(@0)"$(project_files)"}")
@@ -182,6 +183,10 @@ fi
 
 print_section '🐙 ActionLint'
 actionlint -shellcheck shellcheck -- "${(@M)files:#.github/workflows/[^/]##.(yaml|yml)}"
+((exit_status |= ${?}))
+
+print_section '🌈 zizmor'
+zizmor --offline -qq -- .github
 ((exit_status |= ${?}))
 
 print_section '🐚 ShellCheck'

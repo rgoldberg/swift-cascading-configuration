@@ -9,3 +9,4 @@ brew 'swiftlint'            # 0.65.1
 brew 'swiftly'              # 1.2.0
 brew 'vale'                 # 3.28.1
 brew 'yamllint'             # 1.38.0
+brew 'zizmor'               # 1.33.1
