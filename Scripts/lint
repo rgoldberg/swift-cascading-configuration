@@ -155,8 +155,9 @@ fi
 print_section '🏷 File Headers'
 # Each script & config file starts with a header that names the file, then the project, each on its own comment line
 # shellcheck disable=SC1036,SC2034,SC2206
-readonly -a header_files=(
-	${(M)files:#(.github/(^allowed_signers)|.vale/*|Scripts/*|*.y(a|)ml|.editorconfig|.swiftformat|.vale.ini)}
+readonly -aU header_files=(
+	${(M)files:#(.github|.vale|Scripts)/*}
+	${(M)files:#(*.y(a|)ml|.editorconfig|.gitattributes|.gitignore|.swiftformat|.vale.ini|Brewfile)}
 )
 for file in "${header_files[@]}"; do
 	# shellcheck disable=SC2034

@@ -1,3 +1,8 @@
+#
+# Brewfile
+# swift-cascading-configuration
+#
+
 brew 'actionlint'           # 1.7.12
 brew 'editorconfig-checker' # 4.0.2
 brew 'gh'                   # 2.105.0
