@@ -27,6 +27,11 @@ When bumping a minimum version, update every occurrence of it (e.g., in
 `README.md`'s badges). `.xcode-version` names the preferred Xcode (the latest
 stable one), not the minimum.
 
+Each tool version that a `Brewfile` comment or a config file header records
+(e.g., `# SwiftLint 0.65.1`) is the latest version known to work, from which to
+review the tool's changes (e.g., when a new version breaks a check); update it
+only after checking a newer version.
+
 Set each dependency's `from:` in `Package.swift` to its oldest version with
 which the package builds & passes all tests, as
 `Scripts/test-dependency-versions` checks.
@@ -144,3 +149,14 @@ comments, tests & docs), including to every name derived from the renamed one
 ## Rejected Changes
 
 Each item is a change that was rejected, with its reason.
+
+- Building the keys of a cascading lookup lazily, which needs more than a
+  `.lazy`, because the gain (skipping the keys after the 1st that finds a value)
+  does not yet justify the complexity
+- A Dependabot `cooldown`, because a maintainer can wait to merge a Dependabot
+  pull request instead
+- A check that each tool version that a `Brewfile` comment or a config file
+  header records matches the installed version, because each records only the
+  latest version known to work, which a newer version need not break
+- A `timeout-minutes` for a workflow job, because a maintainer starts each rare
+  run & can cancel it
