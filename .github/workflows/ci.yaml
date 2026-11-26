@@ -211,10 +211,7 @@ jobs:
     - *select-xcode
 
     - name: 👢 Bootstrap
-      run: |
-        # Avoids Homebrew's warning that the runner image's aws/tap is untrusted
-        brew untap -fq aws/tap 2>/dev/null || true
-        Scripts/bootstrap
+      run: Scripts/bootstrap
 
     - name: 🚨 Lint
       run: Scripts/lint
