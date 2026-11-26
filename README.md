@@ -64,12 +64,13 @@ An upstream provider can have a base scope (e.g., `["tool"]`): scopes that are
 prepended to every key that it is asked for, like a namespace. Unlike a key
 prefix (see `ConfigProvider.prefixKeys(with:)`), a base scope can be removed by
 a cascade, but only once no other scopes remain & only down to a separate floor:
-the base scope cascade scope floor, the minimum number of base scopes that a key
-tried by the cascade keeps. That floor applies only if the cascade scope floor
-(see [Limiting the Cascade](#limiting-the-cascade)) is `0`; the default base
-scope cascade scope floor, `.noCascading`, keeps the whole base scope, while `0`
-lets the cascade remove it (e.g., `0` reaches `PAGER` for `pager`, with base
-scope `["tool"]`). A key overrides that floor via its context:
+the base scope cascade scope floor, the minimum number of components of its base
+scope that a key tried by the cascade keeps. That floor applies only if the
+cascade scope floor (see [Limiting the Cascade](#limiting-the-cascade)) is `0`;
+the default base scope cascade scope floor, `.noCascading`, keeps the whole base
+scope, while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for
+`pager`, with base scope `["tool"]`). A key overrides that floor via its
+context:
 
 ```swift
 /// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
@@ -87,10 +88,10 @@ let pager = config.string(forKey: .init("pager", context: .baseScope([])))
 
 ### Limiting the Cascade
 
-A cascade scope floor is the minimum number of scopes, not counting base scopes,
-that a key tried by the cascade keeps: `0` (the default) cascades until no
-scopes remain, while `.noCascading` turns cascading off. Each upstream provider
-has its own floors (e.g.,
+A cascade scope floor is the minimum number of scopes, not counting the
+components of its base scope, that a key tried by the cascade keeps: `0` (the
+default) cascades until no scopes remain, while `.noCascading` turns cascading
+off. Each upstream provider has its own floors (e.g.,
 `.init(env, cascadeScopeFloor: 1, baseScopeCascadeScopeFloor: 0)`), which a key
 overrides via its context:
 

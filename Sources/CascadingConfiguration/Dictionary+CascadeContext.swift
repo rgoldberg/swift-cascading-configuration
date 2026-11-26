@@ -29,8 +29,8 @@ public extension [String: ConfigContextValue] {
 	/// let setting = config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 	/// ```
 	///
-	/// - Parameter floor: The minimum number of scopes, not counting base scopes,
-	///   that a key tried by the cascade keeps.
+	/// - Parameter floor: The minimum number of scopes, not counting the
+	///   components of its base scope, that a key tried by the cascade keeps.
 	/// - Returns: A key context that holds only `floor`.
 	static func cascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
 		.init().cascadeScopeFloor(floor)
@@ -45,8 +45,8 @@ public extension [String: ConfigContextValue] {
 	/// let pager = config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 	/// ```
 	///
-	/// - Parameter floor: The minimum number of base scopes that a key tried by
-	///   the cascade keeps, if its cascade scope floor is `0`.
+	/// - Parameter floor: The minimum number of components of its base scope that
+	///   a key tried by the cascade keeps, if its cascade scope floor is `0`.
 	/// - Returns: A key context that holds only `floor`.
 	static func baseScopeCascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
 		.init().baseScopeCascadeScopeFloor(floor)
@@ -72,8 +72,8 @@ public extension [String: ConfigContextValue] {
 	/// Returns this key context with a cascade scope floor that overrides that of
 	/// every upstream provider of a ``CascadingProvider``.
 	///
-	/// - Parameter floor: The minimum number of scopes, not counting base scopes,
-	///   that a key tried by the cascade keeps.
+	/// - Parameter floor: The minimum number of scopes, not counting the
+	///   components of its base scope, that a key tried by the cascade keeps.
 	/// - Returns: This key context, with `floor` replacing any cascade scope
 	///   floor.
 	func cascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {
@@ -84,8 +84,8 @@ public extension [String: ConfigContextValue] {
 	/// overrides that of every upstream provider of a ``CascadingProvider`` whose
 	/// base scope is not empty.
 	///
-	/// - Parameter floor: The minimum number of base scopes that a key tried by
-	///   the cascade keeps, if its cascade scope floor is `0`.
+	/// - Parameter floor: The minimum number of components of its base scope that
+	///   a key tried by the cascade keeps, if its cascade scope floor is `0`.
 	/// - Returns: This key context, with `floor` replacing any base scope cascade
 	///   scope floor.
 	func baseScopeCascadeScopeFloor(_ floor: CascadingProvider.CascadeScopeFloor) -> Self {

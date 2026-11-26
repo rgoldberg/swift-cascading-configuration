@@ -63,11 +63,12 @@ struct CascadingLookupTests {
 			(nil, ["tool.install.limit", "tool.limit"]),
 			(0, ["tool.install.limit", "tool.limit", "limit"]),
 			(1, ["tool.install.limit", "tool.limit"]),
-			// A floor above the number of base scopes keeps no other scope
+			// A floor above the number of components of the base scope keeps no other
+			// scope
 			(2, ["tool.install.limit", "tool.limit"]),
 		] as [(CascadingProvider.CascadeScopeFloor?, [String])],
 	)
-	func `base scope cascade scope floor counts only base scopes`(
+	func `base scope cascade scope floor counts only components of the base scope`(
 		floor: CascadingProvider.CascadeScopeFloor?,
 		expected: [String],
 	) throws {
@@ -80,7 +81,7 @@ struct CascadingLookupTests {
 
 	@available(Configuration 1.0, *)
 	@Test
-	func `base scope cascade scope floor keeps leading base scopes`() throws {
+	func `base scope cascade scope floor keeps leading components of the base scope`() throws {
 		let recorder = KeyRecordingProvider()
 		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["org", "tool"], baseScopeCascadeScopeFloor: 1)])
 			.value(forKey: ["a", "limit"], type: .string)
