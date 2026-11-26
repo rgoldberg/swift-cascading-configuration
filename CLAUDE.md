@@ -66,9 +66,9 @@ which the package builds & passes all tests, as
   1. Add or edit tests for all new or changed behavior
   2. Repeatedly run `Scripts/format` until it makes no modifications, reviewing
      each run's modifications
-  3. Repeatedly run `Scripts/check -A` & fix every failure until none are
-     reported, skipping `Scripts/api-breakage` (via `-S api-breakage`) only for
-     an intentional API break
+  3. Repeatedly run `Scripts/check` & fix every failure until none are reported,
+     skipping `Scripts/api-breakage` (via `-S api-breakage`) only for an
+     intentional API break
   4. Manually check rules that linters do not enforce: Oxford commas; `second` &
      adjective `one` written as digits; `and` after a comma, which must separate
      distinct clauses or end a parenthetical or a nonrestrictive clause; &

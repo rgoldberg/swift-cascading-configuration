@@ -28,6 +28,7 @@ zmodload zsh/zutil
 zparseopts -D -F -A received_flag A L V
 readonly -A received_flag
 
+# shellcheck disable=SC2086
 ensure_command_available\
 	actionlint\
 	editorconfig-checker\
@@ -69,28 +70,30 @@ print_section '🦅 SwiftLint'
 swiftlint --strict --quiet --reporter relative-path -- "${swift_files[@]}"
 ((exit_status |= ${?}))
 
-# shellcheck disable=SC1046,SC1047,SC1072,SC1073
 if ! [[ -v 'received_flag[-A]' ]]; then
 	print_section '🔬 SwiftLint Analyze'
-	# shellcheck disable=SC1036
-	swiftlint analyze --strict --quiet --reporter relative-path --compiler-log-path\
-		=(
-			xcodebuild\
-				-scheme swift-cascading-configuration\
-				-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
-				2>&1
-		) -- "${swift_files[@]}"
-	((exit_status |= ${?}))
-	print_section '🔬 SwiftLint Analyze Tests'
-	swiftlint analyze --strict --quiet --reporter relative-path --compiler-log-path\
-		=(
-			xcodebuild\
-				-scheme swift-cascading-configuration\
-				-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
-				build-for-testing\
-				2>&1
-		) -- "${swift_files[@]}"
-	((exit_status |= ${?}))
+	# Builds the library & tests into a new folder, so that the log holds the compiler invocation of each file
+	derived_data_folder="$(mktemp -d)"
+	readonly derived_data_folder
+	readonly xcodebuild_log="${derived_data_folder}/xcodebuild.log"
+	# shellcheck disable=SC2154
+	if xcodebuild build-for-testing\
+		-scheme swift-cascading-configuration\
+		-destination "platform=macOS,arch=${CPUTYPE},variant=macos"\
+		-derivedDataPath "${derived_data_folder}"\
+		>"${xcodebuild_log}" 2>&1
+	then
+		# Passes absolute paths, because SwiftLint matches no relative path with a compiler invocation in the log, so it
+		# would analyze no file
+		swiftlint analyze --strict --quiet --reporter relative-path --compiler-log-path "${xcodebuild_log}"\
+			-- "${swift_files[@]:A}"
+		((exit_status |= ${?}))
+	else
+		print -r -- "$(<"${xcodebuild_log}")"
+		print_error 'xcodebuild failed'
+		((exit_status |= 1))
+	fi
+	trash "${derived_data_folder}"
 fi
 
 if ! [[ -v 'received_flag[-L]' ]]; then
@@ -165,6 +168,7 @@ done
 # GitHub Actions evaluates each if condition as an expression, so only one that starts with !, which YAML reads as a
 # tag, needs ${{…}}
 if git grep -nE '^[[:space:]]*if: \$\{\{[^!]' -- .github/workflows; then
+	# shellcheck disable=SC2016
 	print_error 'Omit ${{…}} from each if condition that does not start with !'
 	((exit_status |= 1))
 fi
