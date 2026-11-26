@@ -21,17 +21,20 @@ defaults:
 jobs:
   analyze:
     name: Analyze ${{matrix.language}}
-    # CodeQL cannot trace builds on macOS 27 or newer
-    runs-on: macos-26
+    runs-on: ${{matrix.runner}}
     permissions:
       security-events: write
     strategy:
       matrix:
         include:
+        # Analyzes the workflows on Linux, so that it never waits for 1 of the few concurrent macOS runners
         - language: actions
           build-mode: none
+          runner: ubuntu-latest
         - language: swift
           build-mode: manual
+          # CodeQL cannot trace builds on macOS 27 or newer
+          runner: macos-26
           queries: +security-and-quality
       fail-fast: false
     steps:
@@ -47,6 +50,8 @@ jobs:
         persist-credentials: false
 
     - name: 🔧 Setup repo
+      # Only the Swift build needs it, and Linux has no zsh
+      if: matrix.language == 'swift'
       run: Scripts/setup-workflow-repo
 
     - name: 🔩 Initialize CodeQL
