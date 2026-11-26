@@ -175,8 +175,12 @@ jobs:
     - name: 🕊 Hide the Swift of the runner image
       # The script below installs the Swift that its Swift SDK for Android needs only if no Swift is installed
       run: |
-        sudo mv -- /usr/local/bin/swift /usr/local/bin/swiftc /usr/local/lib/libsourcekitdInProc.so /usr/share/swift\
-          "${RUNNER_TEMP}"
+        # Keeps each file's folder, because /usr/local/bin/swift & /usr/share/swift share a name
+        readonly hidden_folder="${RUNNER_TEMP}/runner-image-swift"
+        sudo mkdir -p -- "${hidden_folder}"/{bin,lib,share}
+        sudo mv -- /usr/local/bin/swift /usr/local/bin/swiftc "${hidden_folder}/bin"
+        sudo mv -- /usr/local/lib/libsourcekitdInProc.so "${hidden_folder}/lib"
+        sudo mv -- /usr/share/swift "${hidden_folder}/share"
 
     - name: 🏗 Install Swift SDK for Android & build library & tests
       env:
