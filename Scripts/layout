@@ -61,16 +61,27 @@ typeset MATCH MBEGIN MEND
 integer exit_status=0 limit is_overfull
 max_line_length=''
 
-# Each .editorconfig section's max_line_length, keyed by the section's glob converted to a zsh pattern (the last
-# matching section wins)
+# Each .editorconfig section's max_line_length, keyed by the section's glob converted to a zsh pattern that matches a
+# path relative to the repo (the last matching section wins)
 typeset -a max_line_length_patterns=() max_line_lengths=()
 section=''
+pattern=''
+# Marks each ** of a glob while its other * are converted
+readonly double_star_mark=$'\0'
 # shellcheck disable=SC2066
 for line in "${(@f)"$(<.editorconfig)"}"; do
 	if [[ "${line}" =~ ${editorconfig_section_regex} ]]; then
 		section="${match[1]}"
 	elif [[ -n "${section}" && "${line}" =~ ${editorconfig_max_line_length_regex} ]]; then
-		max_line_length_patterns+=("${${${section//\{/(}//,/|}//\}/)}")
+		pattern="${${${section//\{/(}//,/|}//\}/)}"
+		# In an EditorConfig glob, ** matches any characters, while * matches any except /
+		pattern="${${${pattern//\*\*/${double_star_mark}}//\*/[^/]#}//${double_star_mark}/*}"
+		# A glob that holds no / matches a file in any folder
+		if [[ "${section}" == */* ]]; then
+			max_line_length_patterns+=("${pattern#/}")
+		else
+			max_line_length_patterns+=("(|*/)${pattern}")
+		fi
 		max_line_lengths+=("${match[1]}")
 	fi
 done
@@ -391,7 +402,7 @@ set_max_line_length() {
 	max_line_length=''
 	for ((index = 1; index <= ${#max_line_length_patterns}; ++index)); do
 		# shellcheck disable=SC2053
-		if [[ "${1:t}" == ${~max_line_length_patterns[index]} ]]; then
+		if [[ "${1}" == ${~max_line_length_patterns[index]} ]]; then
 			max_line_length="${max_line_lengths[index]}"
 		fi
 	done
