@@ -70,24 +70,16 @@ struct CascadingLookupTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test(
-		arguments: [
-			// A non-integer floor is ignored
-			("0", ["tool.install.limit", "tool.limit"]),
-			// A negative floor behaves like 0
-			(-1, ["tool.install.limit", "tool.limit", "limit"]),
-		] as [(ConfigContextValue, [String])],
-	)
-	func `base scope cascade scope floor context entry is validated`(
-		floor: ConfigContextValue,
-		expected: [String],
-	) throws {
+	@Test(arguments: ["0", -1] as [ConfigContextValue])
+	func `base scope cascade scope floor ignored unless nonnegative integer`(floor: ConfigContextValue) throws {
+		// The entry would let the cascade remove the base scope if it were not
+		// ignored
 		let recorder = KeyRecordingProvider()
 		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])]).value(
 			forKey: .init(["install", "limit"], context: ["cascadingConfiguration.baseScopeCascadeScopeFloor": floor]),
 			type: .string,
 		)
-		#expect(recorder.keys.withLock(\.self) == expected)
+		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit", "tool.limit"])
 	}
 
 	@available(Configuration 1.0, *)

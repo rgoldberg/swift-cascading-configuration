@@ -150,11 +150,14 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test
-	func `cascade scope floor ignored unless integer`() throws {
-		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["setting": "general"]))])
-		let key = AbsoluteConfigKey(["a", "setting"], context: [cascadeScopeFloorContextKey: "1"])
-		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == "general")
+	@Test(arguments: ["0", -1] as [ConfigContextValue])
+	func `cascade scope floor ignored unless nonnegative integer`(cascadeScopeFloor: ConfigContextValue) throws {
+		// The entry would let the cascade reach "setting" if it were not ignored
+		let provider = CascadingProvider(
+			providers: [.init(InMemoryProvider(values: ["setting": "general"]), cascadeScopeFloor: 1)],
+		)
+		let key = AbsoluteConfigKey(["a", "setting"], context: [cascadeScopeFloorContextKey: cascadeScopeFloor])
+		#expect(try provider.value(forKey: key, type: .string).value == nil)
 	}
 
 	@available(Configuration 1.0, *)

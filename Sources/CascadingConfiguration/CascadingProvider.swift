@@ -12,8 +12,8 @@ public import Configuration
 ///
 /// The cascade scope floor is an integer: the minimum number of scopes, not
 /// counting base scopes, that a key tried by a cascading lookup keeps. It
-/// overrides the cascade scope floor of every upstream provider. An entry with
-/// a non-integer value is ignored, and a negative one behaves like `0`.
+/// overrides the cascade scope floor of every upstream provider. An entry whose
+/// value is not a nonnegative integer is ignored.
 let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
 
 /// The name of the key context entry that holds a key's base scope cascade
@@ -22,8 +22,8 @@ let cascadeScopeFloorContextKey = "cascadingConfiguration.cascadeScopeFloor"
 /// The base scope cascade scope floor is an integer: the minimum number of base
 /// scopes that a key tried by a cascading lookup keeps, if its cascade scope
 /// floor is `0`. It overrides the base scope cascade scope floor of every
-/// upstream provider whose base scope is not empty. An entry with a non-integer
-/// value is ignored, and a negative one behaves like `0`.
+/// upstream provider whose base scope is not empty. An entry whose value is not
+/// a nonnegative integer is ignored.
 let baseScopeCascadeScopeFloorContextKey = "cascadingConfiguration.baseScopeCascadeScopeFloor"
 
 /// The prefix of the names of the key context entries that hold a key's base
@@ -182,13 +182,13 @@ public extension CascadingProvider {
 		/// The minimum number of leading scopes that a cascade keeps.
 		public let rawValue: Int
 
-		/// The floor of a key context value, or `nil` if the value is not an
-		/// integer; a negative integer behaves like `0`.
+		/// The floor of a key context value, or `nil` if the value is not a
+		/// nonnegative integer.
 		fileprivate init?(contextValue: ConfigContextValue?) {
 			guard case let .int(rawValue) = contextValue else {
 				return nil
 			}
-			self.init(validRawValue: max(rawValue, 0))
+			self.init(rawValue: rawValue)
 		}
 
 		private init(validRawValue: Int) {
