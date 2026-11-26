@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT
 //
 
-@testable import CascadingConfiguration
+import CascadingConfiguration
 import ConfigurationTesting
 import Synchronization
 import Testing
@@ -28,7 +28,7 @@ struct CascadingProviderTests {
 				),
 			],
 		).value(forKey: ["a", "b", "setting"], type: .string)
-		#expect(try result.value?.content.asString == "specific")
+		#expect(result.value?.content == "specific")
 		#expect(result.encodedKey == "a.b.setting")
 	}
 
@@ -40,11 +40,11 @@ struct CascadingProviderTests {
 		)
 
 		let middleResult = try provider.value(forKey: ["a", "b", "c", "setting"], type: .string)
-		#expect(try middleResult.value?.content.asString == "middle")
+		#expect(middleResult.value?.content == "middle")
 		#expect(middleResult.encodedKey == "a.setting")
 
 		let generalResult = try provider.value(forKey: ["x", "setting"], type: .string)
-		#expect(try generalResult.value?.content.asString == "general")
+		#expect(generalResult.value?.content == "general")
 		#expect(generalResult.encodedKey == "setting")
 	}
 
@@ -68,7 +68,7 @@ struct CascadingProviderTests {
 				.init(InMemoryProvider(name: "2nd", values: ["a.setting": "2nd specific"])),
 			],
 		).value(forKey: ["a", "setting"], type: .string)
-		#expect(try result.value?.content.asString == "2nd specific")
+		#expect(result.value?.content == "2nd specific")
 	}
 
 	@available(Configuration 1.0, *)
@@ -80,7 +80,7 @@ struct CascadingProviderTests {
 				.init(InMemoryProvider(name: "2nd", values: ["setting": "2nd"])),
 			],
 		).value(forKey: ["a", "setting"], type: .string)
-		#expect(try result.value?.content.asString == "1st")
+		#expect(result.value?.content == "1st")
 	}
 
 	@available(Configuration 1.0, *)
@@ -96,7 +96,7 @@ struct CascadingProviderTests {
 				],
 			).value(forKey: ["a", "setting"], type: .string)
 		}
-		#expect(recorder.keys.withLock(\.self).isEmpty)
+		#expect(recorder.keys.isEmpty)
 	}
 
 	@available(Configuration 1.0, *)
@@ -112,7 +112,7 @@ struct CascadingProviderTests {
 				],
 			).fetchValue(forKey: ["a", "setting"], type: .string)
 		}
-		#expect(recorder.keys.withLock(\.self).isEmpty)
+		#expect(recorder.keys.isEmpty)
 	}
 
 	@available(Configuration 1.0, *)
@@ -142,7 +142,7 @@ struct CascadingProviderTests {
 		).watchValue(forKey: ["a", "setting"], type: .string) { updates in
 			var iterator = updates.makeAsyncIterator()
 			let result = try await iterator.next(isolation: #isolation)?.get()
-			#expect(try result?.value?.content.asString == "specific")
+			#expect(result?.value?.content == "specific")
 		}
 	}
 
@@ -163,43 +163,23 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test(
-		arguments: [
-			(Int?.none, String?.some("1 scope")),
-			(0, "1 scope"),
-			(1, "1 scope"),
-			(2, nil),
-			(3, nil),
-			(4, nil),
-		],
-	)
-	func `cascade scope floor limits cascade`(cascadeScopeFloor: Int?, expected: String?) throws {
-		// The only value is at a key with 1 scope, so the lookup finds it unless
-		// the floor is above 1
-		let provider = CascadingProvider(providers: [.init(InMemoryProvider(values: ["a.setting": "1 scope"]))])
-		let key = AbsoluteConfigKey(
-			["a", "b", "c", "setting"],
-			context: cascadeScopeFloor.map { [cascadeScopeFloorContextKey: .int($0)] } ?? [:],
-		)
-		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == expected)
-		#expect(try provider.snapshot().value(forKey: key, type: .string).value?.content.asString == expected)
-	}
-
-	@available(Configuration 1.0, *)
 	@Test(arguments: [ConfigContextValue.string("0"), -1])
 	func `cascade scope floor ignored unless nonnegative integer`(cascadeScopeFloor: ConfigContextValue) throws {
 		// The entry would let the cascade reach "setting" if it were not ignored
 		let provider = CascadingProvider(
 			providers: [.init(InMemoryProvider(values: ["setting": "general"]), cascadeScopeFloor: 1)],
 		)
-		let key = AbsoluteConfigKey(["a", "setting"], context: [cascadeScopeFloorContextKey: cascadeScopeFloor])
+		let key = AbsoluteConfigKey(
+			["a", "setting"],
+			context: ["cascadingConfiguration.cascadeScopeFloor": cascadeScopeFloor],
+		)
 		#expect(try provider.value(forKey: key, type: .string).value == nil)
 	}
 
 	@available(Configuration 1.0, *)
 	@Test
 	func `cascade context removed from upstream context`() throws {
-		let upstream = ContextRecordingProvider()
+		let upstream = KeyRecordingProvider()
 		let key = AbsoluteConfigKey(
 			["a", "setting"],
 			context: [
@@ -213,7 +193,7 @@ struct CascadingProviderTests {
 				.baseScopeCascadeScopeFloor(0),
 		)
 		_ = try CascadingProvider(providers: [.init(upstream)]).value(forKey: key, type: .string)
-		#expect(upstream.contexts.withLock(\.self) == [["baseScope.0": "kept", "environment": "production"]])
+		#expect(upstream.contexts == [["baseScope.0": "kept", "environment": "production"]])
 	}
 
 	@available(Configuration 1.0, *)
@@ -240,14 +220,14 @@ struct CascadingProviderTests {
 	func `cascade scope floor limits watch`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
-			let future1 = TestFuture<String?>(name: "future1")
-			let future2 = TestFuture<String?>(name: "future2")
+			let future1 = TestFuture<ConfigContent?>(name: "future1")
+			let future2 = TestFuture<ConfigContent?>(name: "future2")
 			group.addTask {
 				try await CascadingProvider(providers: [.init(upstream)])
 					.watchValue(forKey: .init(["a", "b", "setting"], context: .cascadeScopeFloor(1)), type: .string) { updates in
 						var iterator = updates.makeAsyncIterator()
-						try await future1.fulfill(iterator.next()?.get().value?.content.asString)
-						try await future2.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future1.fulfill(iterator.next()?.get().value?.content)
+						try await future2.fulfill(iterator.next()?.get().value?.content)
 					}
 			}
 			// "setting" has fewer scopes than the floor, so its value is not found
@@ -257,40 +237,6 @@ struct CascadingProviderTests {
 			await #expect(future2.value == "middle")
 			try await group.waitForAll()
 		}
-	}
-
-	@available(Configuration 1.0, *)
-	@Test
-	func `upstream cascade scope floor limits only its upstream`() throws {
-		let provider = CascadingProvider(
-			providers: [
-				.init(InMemoryProvider(name: "floored", values: ["setting": "floored"]), cascadeScopeFloor: 1),
-				.init(InMemoryProvider(name: "full", values: ["setting": "full"])),
-			],
-		)
-		#expect(try provider.value(forKey: ["a", "setting"], type: .string).value?.content.asString == "full")
-	}
-
-	@available(Configuration 1.0, *)
-	@Test
-	func `context cascade scope floor overrides upstream cascade scope floor`() throws {
-		let provider = CascadingProvider(
-			providers: [.init(InMemoryProvider(values: ["setting": "general"]), cascadeScopeFloor: .noCascading)],
-		)
-		let key = AbsoluteConfigKey(["a", "setting"], context: .cascadeScopeFloor(0))
-		#expect(try provider.value(forKey: key, type: .string).value?.content.asString == "general")
-	}
-
-	@available(Configuration 1.0, *)
-	@Test
-	func `cascade scope floor stops at no cascading`() throws {
-		let recorder = KeyRecordingProvider()
-		_ = try CascadingProvider(
-			providers: [
-				.init(recorder, baseScope: ["tool"], cascadeScopeFloor: .noCascading),
-			],
-		).value(forKey: ["install", "limit"], type: .string)
-		#expect(recorder.keys.withLock(\.self) == ["tool.install.limit"])
 	}
 
 	@available(Configuration 1.0, *)
@@ -314,7 +260,7 @@ struct CascadingProviderTests {
 		)
 
 		let specificResult = try await provider.fetchValue(forKey: ["a", "b", "setting"], type: .string)
-		#expect(try specificResult.value?.content.asString == "2nd specific")
+		#expect(specificResult.value?.content == "2nd specific")
 		#expect(specificResult.encodedKey == "a.setting")
 
 		let absentResult = try await provider.fetchValue(forKey: ["a", "other"], type: .string)
@@ -329,7 +275,7 @@ struct CascadingProviderTests {
 		// requested key or a cascaded key
 		let result = try await CascadingProvider(providers: [.init(FetchOnlyProvider(fetchableKey: fetchableKey))])
 			.fetchValue(forKey: ["a", "setting"], type: .string)
-		#expect(try result.value?.content.asString == "fetched")
+		#expect(result.value?.content == "fetched")
 	}
 
 	@available(Configuration 1.0, *)
@@ -337,14 +283,14 @@ struct CascadingProviderTests {
 	func `watch value cascades`() async throws {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
-			let future1 = TestFuture<String?>(name: "future1")
-			let future2 = TestFuture<String?>(name: "future2")
+			let future1 = TestFuture<ConfigContent?>(name: "future1")
+			let future2 = TestFuture<ConfigContent?>(name: "future2")
 			group.addTask {
 				try await CascadingProvider(providers: [.init(upstream)])
 					.watchValue(forKey: ["a", "setting"], type: .string) { updates in
 						var iterator = updates.makeAsyncIterator()
-						try await future1.fulfill(iterator.next()?.get().value?.content.asString)
-						try await future2.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future1.fulfill(iterator.next()?.get().value?.content)
+						try await future2.fulfill(iterator.next()?.get().value?.content)
 					}
 			}
 			await #expect(future1.value == "general")
@@ -361,16 +307,16 @@ struct CascadingProviderTests {
 		let first = MutableInMemoryProvider(name: "1st", initialValues: ["setting": "1st general"])
 		let second = MutableInMemoryProvider(name: "2nd", initialValues: [:])
 		try await withThrowingTaskGroup(of: Void.self) { group in
-			let future1 = TestFuture<String?>(name: "future1")
-			let future2 = TestFuture<String?>(name: "future2")
-			let future3 = TestFuture<String?>(name: "future3")
+			let future1 = TestFuture<ConfigContent?>(name: "future1")
+			let future2 = TestFuture<ConfigContent?>(name: "future2")
+			let future3 = TestFuture<ConfigContent?>(name: "future3")
 			group.addTask {
 				try await CascadingProvider(providers: [.init(first), .init(second)])
 					.watchValue(forKey: ["a", "setting"], type: .string) { updates in
 						var iterator = updates.makeAsyncIterator()
-						try await future1.fulfill(iterator.next()?.get().value?.content.asString)
-						try await future2.fulfill(iterator.next()?.get().value?.content.asString)
-						try await future3.fulfill(iterator.next()?.get().value?.content.asString)
+						try await future1.fulfill(iterator.next()?.get().value?.content)
+						try await future2.fulfill(iterator.next()?.get().value?.content)
+						try await future3.fulfill(iterator.next()?.get().value?.content)
 					}
 			}
 			await #expect(future1.value == "1st general")
@@ -393,17 +339,17 @@ struct CascadingProviderTests {
 		let first = MutableInMemoryProvider(name: "1st", initialValues: ["setting": "1st general"])
 		let second = MutableInMemoryProvider(name: "2nd", initialValues: ["setting": "2nd general"])
 		try await withThrowingTaskGroup(of: Void.self) { group in
-			let future1 = TestFuture<String?>(name: "future1")
-			let future2 = TestFuture<String?>(name: "future2")
+			let future1 = TestFuture<ConfigContent?>(name: "future1")
+			let future2 = TestFuture<ConfigContent?>(name: "future2")
 			group.addTask {
 				try await CascadingProvider(providers: [.init(first), .init(second)]).watchSnapshot { updates in
 					var iterator = updates.makeAsyncIterator()
 					let key = AbsoluteConfigKey(["a", "setting"])
 					try await future1.fulfill(
-						iterator.next()?.value(forKey: key, type: .string).value?.content.asString,
+						iterator.next()?.value(forKey: key, type: .string).value?.content,
 					)
 					try await future2.fulfill(
-						iterator.next()?.value(forKey: key, type: .string).value?.content.asString,
+						iterator.next()?.value(forKey: key, type: .string).value?.content,
 					)
 				}
 			}
@@ -444,7 +390,7 @@ struct CascadingProviderTests {
 		let upstream = MutableInMemoryProvider(initialValues: ["setting": "old"])
 		let snapshot = CascadingProvider(providers: [.init(upstream)]).snapshot()
 		upstream.setValue("new", forKey: "setting")
-		#expect(try snapshot.value(forKey: ["a", "setting"], type: .string).value?.content.asString == "old")
+		#expect(try snapshot.value(forKey: ["a", "setting"], type: .string).value?.content == "old")
 	}
 
 	@available(Configuration 1.0, *)
@@ -578,4 +524,57 @@ struct CascadingProviderTests {
 		}
 	}
 	#endif
+
+	@available(Configuration 1.0, *)
+	@Test(arguments: [ConfigContextValue.string("0"), -1])
+	func `base scope cascade scope floor ignored unless nonnegative integer`(floor: ConfigContextValue) throws {
+		// The entry would let the cascade remove the base scope if it were not
+		// ignored
+		let recorder = KeyRecordingProvider()
+		_ = try CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])]).value(
+			forKey: .init(["install", "limit"], context: ["cascadingConfiguration.baseScopeCascadeScopeFloor": floor]),
+			type: .string,
+		)
+		#expect(recorder.keys == ["tool.install.limit", "tool.limit"])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test(
+		arguments: [
+			// The base scope claims 2 components, but has only 1
+			[
+				"cascadingConfiguration.baseScope.count": ConfigContextValue.int(2),
+				"cascadingConfiguration.baseScope.0": .string("git"),
+			],
+			// The base scope claims more components than any context can hold
+			["cascadingConfiguration.baseScope.count": .int(.max)],
+			// The base scope claims a negative number of components
+			["cascadingConfiguration.baseScope.count": -1],
+			// The base scope claims 1 component, but has 2
+			[
+				"cascadingConfiguration.baseScope.count": 1,
+				"cascadingConfiguration.baseScope.0": "git",
+				"cascadingConfiguration.baseScope.1": "org",
+			],
+			// A component of the base scope is not a string
+			["cascadingConfiguration.baseScope.count": 1, "cascadingConfiguration.baseScope.0": 1],
+			// The base scope has a component, but no count
+			["cascadingConfiguration.baseScope.0": "git"],
+			// The count of the base scope is not an integer
+			["cascadingConfiguration.baseScope.count": "1", "cascadingConfiguration.baseScope.0": "git"],
+			// The base scope has as many components as it claims, but lacks the
+			// component at index 1
+			[
+				"cascadingConfiguration.baseScope.count": 2,
+				"cascadingConfiguration.baseScope.0": "org",
+				"cascadingConfiguration.baseScope.2": "git",
+			],
+		],
+	)
+	func `invalid base scope context is ignored`(context: [String: ConfigContextValue]) throws {
+		let recorder = KeyRecordingProvider()
+		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["tool"])])
+		_ = try provider.value(forKey: .init(["pager"], context: context), type: .string)
+		#expect(recorder.keys == ["tool.pager"])
+	}
 }

@@ -12,32 +12,32 @@ import Testing
 struct IgnoringCascadeContextTests {
 	@available(Configuration 1.0, *)
 	@Test
-	func `ignoring cascade context`() throws {
+	func `ignoring cascade context removes only the cascade context`() throws {
 		let upstream = InMemoryProvider(
 			values: [
 				.init(["foo"]): "bar",
 				.init(["baz"], context: ["environment": "production"]): "qux",
 			],
 		)
-		let floorContext = [String: ConfigContextValue]
+		let cascadeContext = [String: ConfigContextValue]
 			.baseScope(["tool"])
 			.cascadeScopeFloor(1)
 			.baseScopeCascadeScopeFloor(0)
 
 		// The in-memory provider only matches a key with the same context, so the
 		// cascade context hides its value
-		let flooredKey = AbsoluteConfigKey(["foo"], context: floorContext)
-		#expect(try upstream.value(forKey: flooredKey, type: .string).value == nil)
+		let cascadeContextKey = AbsoluteConfigKey(["foo"], context: cascadeContext)
+		#expect(try upstream.value(forKey: cascadeContextKey, type: .string).value == nil)
 
 		let ignoring = upstream.ignoringCascadeContext()
-		#expect(try ignoring.value(forKey: flooredKey, type: .string).value?.content.asString == "bar")
-		#expect(try ignoring.value(forKey: ["foo"], type: .string).value?.content.asString == "bar")
+		#expect(try ignoring.value(forKey: cascadeContextKey, type: .string).value?.content == "bar")
+		#expect(try ignoring.value(forKey: ["foo"], type: .string).value?.content == "bar")
 
 		// The rest of the context is kept
-		let flooredContextKey = AbsoluteConfigKey(
+		let cascadeAndOtherContextKey = AbsoluteConfigKey(
 			["baz"],
-			context: floorContext.merging(["environment": "production"]) { $1 },
+			context: cascadeContext.merging(["environment": "production"]) { $1 },
 		)
-		#expect(try ignoring.value(forKey: flooredContextKey, type: .string).value?.content.asString == "qux")
+		#expect(try ignoring.value(forKey: cascadeAndOtherContextKey, type: .string).value?.content == "qux")
 	}
 }

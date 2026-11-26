@@ -10,11 +10,21 @@ import Configuration
 import Synchronization
 
 /// An upstream provider, which is its own snapshot, that records every key that
-/// it is asked for, in dot notation, and has no values.
+/// it is asked for & has no values.
 @available(Configuration 1.0, *)
 final class KeyRecordingProvider {
 	/// The keys looked up so far, in lookup order.
-	let keys = Mutex<[String]>([])
+	private let recordedKeys = Mutex<[AbsoluteConfigKey]>([])
+
+	/// The keys looked up so far, in dot notation, in lookup order.
+	var keys: [String] {
+		recordedKeys.withLock { recordedKeys in recordedKeys.map { $0.components.joined(separator: ".") } }
+	}
+
+	/// The contexts of the keys looked up so far, in lookup order.
+	var contexts: [[String: ConfigContextValue]] {
+		recordedKeys.withLock { $0.map(\.context) }
+	}
 }
 
 @available(Configuration 1.0, *)
@@ -24,9 +34,8 @@ extension KeyRecordingProvider: ConfigSnapshot {
 	}
 
 	func value(forKey key: AbsoluteConfigKey, type _: ConfigType) -> LookupResult {
-		let encodedKey = key.components.joined(separator: ".")
-		keys.withLock { $0.append(encodedKey) }
-		return .init(encodedKey: encodedKey, value: nil)
+		recordedKeys.withLock { $0.append(key) }
+		return .init(encodedKey: key.components.joined(separator: "."), value: nil)
 	}
 }
 
