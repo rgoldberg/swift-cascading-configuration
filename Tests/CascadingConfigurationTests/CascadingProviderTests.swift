@@ -8,7 +8,6 @@
 
 import CascadingConfiguration
 import ConfigurationTesting
-import Synchronization
 import Testing
 
 /// The bytes of a byte configuration value that the compat test expects.

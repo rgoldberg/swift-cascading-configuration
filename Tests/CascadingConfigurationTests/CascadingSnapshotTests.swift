@@ -7,7 +7,6 @@
 //
 
 import CascadingConfiguration
-import Synchronization
 import Testing
 
 struct CascadingSnapshotTests {
