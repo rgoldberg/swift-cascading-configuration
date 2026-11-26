@@ -35,11 +35,11 @@ let config = ConfigReader(
     ),
 )
 
-/// Tries, in order:
-/// 1. TOOL_INSTALL_LIMIT from the environment
-/// 2. "install.limit" from the file
-/// 3. TOOL_LIMIT from the environment
-/// 4. "limit" from the file
+// Tries, in order:
+// 1. TOOL_INSTALL_LIMIT from the environment
+// 2. "install.limit" from the file
+// 3. TOOL_LIMIT from the environment
+// 4. "limit" from the file
 let limit = config.int(forKey: "install.limit")
 ```
 
@@ -73,7 +73,7 @@ scope, while `0` lets the cascade remove it (e.g., `0` reaches `PAGER` for
 context:
 
 ```swift
-/// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
+// Tries TOOL_PAGER, then PAGER, in an environment provider whose base scope is ["tool"]
 let pager = config.string(forKey: .init("pager", context: .baseScopeCascadeScopeFloor(0)))
 ```
 
@@ -82,7 +82,7 @@ empty base scope removes every base scope, while any other base scope replaces
 each base scope that is not empty:
 
 ```swift
-/// Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
+// Looks up only PAGER, even in an environment provider whose base scope is ["tool"]
 let pager = config.string(forKey: .init("pager", context: .baseScope([])))
 ```
 
@@ -96,7 +96,7 @@ off. Each upstream provider has its own floors (e.g.,
 overrides via its context:
 
 ```swift
-/// Tries TOOL_A_B_SETTING, "a.b.setting", TOOL_A_SETTING, then "a.setting"
+// Tries TOOL_A_B_SETTING, "a.b.setting", TOOL_A_SETTING, then "a.setting"
 let setting = config.string(forKey: .init("a.b.setting", context: .cascadeScopeFloor(1)))
 ```
 

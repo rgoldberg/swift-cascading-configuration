@@ -101,7 +101,7 @@ ensure_command_available() {
 	local command
 	for command in "${@}"; do
 		if ! whence -- "${command}" >/dev/null; then
-			# Homebrew installs each tool only on macOS
+			# Only macOS gets these tools from Homebrew (e.g., Linux CI installs jq via apt)
 			if [[ "${OSTYPE}" == darwin* ]]; then
 				print_error $'%1$s is not installed. Run \'Scripts/bootstrap\' or \'brew install %1$s\'.' "${command}"
 			else

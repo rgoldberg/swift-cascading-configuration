@@ -126,7 +126,7 @@ jobs:
         fi
 
   release-start:
-    # Skipped iff validate-inputs is skipped (e.g., in a fork)
+    # Runs only if validate-inputs succeeds, so never in a fork
     needs: validate-inputs
     runs-on: xcode-27
     permissions:

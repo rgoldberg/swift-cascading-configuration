@@ -49,10 +49,11 @@ readonly -a swift_files=("${(@M)files:#*.swift}")
 if ((${#swift_files})); then
 	swiftformat --strict --color always "${swift_files[@]}" |& filter_swiftformat_output '0/[0-9]+ files formatted\.'
 fi
-# Indent Swift code in Markdown by 4 spaces, because .editorconfig indents Markdown with spaces
+# Indent Swift code in Markdown by 4 spaces, because .editorconfig indents Markdown with spaces; keep each comment of an
+# example as written, because it explains the example, instead of documenting a declaration
 readonly -a markdown_files=("${(@M)files:#*.md}")
 if ((${#markdown_files})); then
-	swiftformat --strict --color always --indent 4 "${markdown_files[@]}" |&
+	swiftformat --strict --color always --indent 4 --disable docComments "${markdown_files[@]}" |&
 		filter_swiftformat_output '0/[0-9]+ files formatted\.'
 fi
 

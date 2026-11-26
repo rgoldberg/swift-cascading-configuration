@@ -61,9 +61,10 @@ if ((${#swift_files})); then
 	lint_swiftformat "${swift_files[@]}"
 	((exit_status |= ${?}))
 fi
-# Indent Swift code in Markdown by 4 spaces, because .editorconfig indents Markdown with spaces
+# Indent Swift code in Markdown by 4 spaces, because .editorconfig indents Markdown with spaces; keep each comment of an
+# example as written, because it explains the example, instead of documenting a declaration
 if ((${#markdown_files})); then
-	lint_swiftformat --indent 4 "${markdown_files[@]}"
+	lint_swiftformat --indent 4 --disable docComments "${markdown_files[@]}"
 	((exit_status |= ${?}))
 fi
 
