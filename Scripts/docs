@@ -22,8 +22,12 @@ readonly dump_output
 readonly dump_folder="${${(M)${(f)dump_output}:#Files written to *}#Files written to }"
 
 # Links only this module's symbol graphs, because docc convert would also document every other module in the folder
-symbol_graph_folder="$(mktemp -d)"
-readonly symbol_graph_folder
+# Replaces the folder of an earlier run, instead of leaving a new temporary folder after each run
+readonly symbol_graph_folder=".build/${module}.symbolgraphs"
+if [[ -e "${symbol_graph_folder}" ]]; then
+	trash "${symbol_graph_folder}"
+fi
+mkdir -p -- "${symbol_graph_folder}"
 ln -s -- "${dump_folder}/${module}"*.symbols.json "${symbol_graph_folder}"
 
 # Xcode provides docc only via xcrun, while a Swift toolchain provides it in its bin folder
