@@ -10,6 +10,13 @@ same change, iff it helps AI work better enough to justify the context that it
 uses, which restating what another file states (e.g., a workflow's matrix or a
 script's arguments) never does.
 
+When a change fixes a kind of problem that a tool can detect (e.g., via a Vale
+rule in `.vale/scc`, or a SwiftLint custom rule), add a check for it in the same
+change, so that `Scripts/check` catches each recurrence.
+
+Never make a change that [Rejected Changes](#rejected-changes) lists; record
+each rejected change there, with its reason.
+
 Before changing anything, check its history (e.g., `git log -S`), so that no
 change reverts an earlier one, unless the change says why the earlier one was
 wrong.
@@ -131,3 +138,7 @@ Refactoring should:
 Apply every rename throughout the repository (e.g., specs, code identifiers,
 comments, tests & docs), including to every name derived from the renamed one
 (e.g., renaming a type renames the identifiers named after it).
+
+## Rejected Changes
+
+Each item is a change that was rejected, with its reason.
