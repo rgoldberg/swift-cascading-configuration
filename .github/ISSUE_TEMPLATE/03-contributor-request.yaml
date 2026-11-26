@@ -1,0 +1,16 @@
+#
+# .github/ISSUE_TEMPLATE/03-contributor-request.yaml
+# swift-cascading-configuration
+#
+---
+name: Contributor Request
+description: Ask to join the contributors team.
+title: 'Add Contributor: @'
+body:
+- type: textarea
+  id: pull-requests
+  attributes:
+    label: Accepted pull requests
+    placeholder: Links to your accepted pull requests
+  validations:
+    required: true

@@ -92,7 +92,9 @@ which the package builds & passes all tests, as
 
 Give each file the longest standard extension for its file type that works for
 its purpose (e.g., `.swiftlint.yml`, because `.swiftlint.yaml` does not work;
-`ci.yaml`, because both work), except always use `.md` for Markdown.
+`ci.yaml`, because both work), except always use `.md` for Markdown & never add
+an extension to a conventionally extensionless name (e.g., `LICENSE`,
+`Brewfile`).
 
 ## Content Formatting
 

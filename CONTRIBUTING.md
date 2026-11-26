@@ -30,7 +30,7 @@ where `main` is the trunk.
   - To branch a topic branch from `main` named, e.g., `feature`, run:
     `git checkout -b feature main`
 - Commit logical units
-- Follow the [project guidelines](AGENTS.md)
+- Follow the [project guidelines](CLAUDE.md)
 - Run `Scripts/bootstrap` to install the tools that `Scripts/format` &
   `Scripts/check` use
 - Before committing, run `Scripts/format` until it makes no modifications,
@@ -57,18 +57,17 @@ where `main` is the trunk.
 ## Becoming a Contributor
 
 To join the [team](https://github.com/orgs/ro-ss/teams/contributors), once a few
-of your PRs have been accepted, [open an
-issue](https://github.com/ro-ss/swift-cascading-configuration/issues/new) titled
-"Add Contributor: @YourGitHubUsername".
+of your PRs have been accepted, [open a contributor request](
+  https://github.com/ro-ss/swift-cascading-configuration/issues/new?template=03-contributor-request.yaml
+).
 
 ## Project Lead Responsibilities
 
 Project leads agree to the following terms:
 
 - Project leads have full control over the project's future direction
-- If you are the sole project lead, but can no longer lead the project, either:
+- If you are the sole project lead, but can no longer lead the project:
   - Find someone else to assume the project leadership who agrees to adhere to
     the existing terms
-  - If you cannot find a new project lead:
-    - Add an [unmaintained badge](https://unmaintained.tech) to the
-      [README](README.md)
+  - If you cannot find a new project lead, add an [unmaintained
+    badge](https://unmaintained.tech) to the [README](README.md)

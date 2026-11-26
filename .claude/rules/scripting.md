@@ -14,8 +14,9 @@ paths:
 - Use a `#!/bin/zsh -f` shebang (changing options as necessary)
 - Start each development script with `. "${0:A:h}/_setup-script"`, overriding
   its zsh settings as necessary
-- Print each error of a development script via `print_error` & each heading of a
-  section of its output via `print_section`, never directly
+- Print each error of a development script itself (not each finding that it
+  reports at a file location, e.g., a lint violation) via `print_error` & each
+  heading of a section of its output via `print_section`, never directly
 - Prefer concision to verbosity
 - If performance is at least almost equivalent or better, prefer in descending
   order:
