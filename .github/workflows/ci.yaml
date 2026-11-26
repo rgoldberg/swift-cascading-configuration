@@ -279,6 +279,10 @@ jobs:
     - *select-xcode
 
     - name: 👢 Bootstrap
+      env:
+        # Skips upgrading each formula of the runner image that depends on an upgraded one (e.g., openjdk), which lint
+        # does not use
+        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: 1
       run: Scripts/bootstrap
 
     - name: 🚨 Lint
