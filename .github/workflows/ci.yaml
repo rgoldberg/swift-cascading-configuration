@@ -75,6 +75,16 @@ jobs:
       run: |
         # Install Swiftly from swift.org instead of from Homebrew, which no longer bottles updated formulae for x86_64
         curl -fsSLo "${RUNNER_TEMP}/swiftly.pkg" https://download.swift.org/swiftly/darwin/swiftly.pkg
+        # Rejects a pkg that Swift Open Source did not sign, or that Apple did not notarize
+        signature="$(pkgutil --check-signature "${RUNNER_TEMP}/swiftly.pkg")"
+        readonly signature
+        if [[
+          "${signature}" != *'Notarization: trusted by the Apple notary service'*
+          || "${signature}" != *'1. Developer ID Installer: Swift Open Source (V9AUD2URP3)'*
+        ]]; then
+          printf $'::error::swiftly.pkg is not signed by Swift Open Source & notarized by Apple\n' >&2
+          exit 1
+        fi
         installer -pkg "${RUNNER_TEMP}/swiftly.pkg" -target CurrentUserHomeDirectory
         path=(~/.swiftly/bin "${path[@]}")
         # Runs outside the checkout, so that Swiftly sets its global default instead of rewriting .swift-version
