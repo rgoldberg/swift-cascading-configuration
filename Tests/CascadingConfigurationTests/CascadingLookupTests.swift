@@ -100,7 +100,7 @@ struct CascadingLookupTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test(arguments: ["0", -1] as [ConfigContextValue])
+	@Test(arguments: [ConfigContextValue.string("0"), -1])
 	func `base scope cascade scope floor ignored unless nonnegative integer`(floor: ConfigContextValue) throws {
 		// The entry would let the cascade remove the base scope if it were not
 		// ignored
@@ -161,9 +161,9 @@ struct CascadingLookupTests {
 	@available(Configuration 1.0, *)
 	@Test(
 		arguments: [
-			([], ["pager"], ["pager"]),
+			([String](), ["pager"], ["pager"]),
 			(["git"], ["git.pager"], ["pager"]),
-		] as [([String], [String], [String])],
+		],
 	)
 	func `base scope context overrides only nonempty base scopes`(
 		baseScope: [String],
@@ -202,7 +202,10 @@ struct CascadingLookupTests {
 	@Test(
 		arguments: [
 			// The base scope claims 2 components, but has only 1
-			["cascadingConfiguration.baseScope.count": 2, "cascadingConfiguration.baseScope.0": "git"],
+			[
+				"cascadingConfiguration.baseScope.count": ConfigContextValue.int(2),
+				"cascadingConfiguration.baseScope.0": .string("git"),
+			],
 			// The base scope claims more components than any context can hold
 			["cascadingConfiguration.baseScope.count": .int(.max)],
 			// The base scope claims a negative number of components
@@ -226,7 +229,7 @@ struct CascadingLookupTests {
 				"cascadingConfiguration.baseScope.0": "org",
 				"cascadingConfiguration.baseScope.2": "git",
 			],
-		] as [[String: ConfigContextValue]],
+		],
 	)
 	func `invalid base scope context is ignored`(context: [String: ConfigContextValue]) throws {
 		let recorder = KeyRecordingProvider()

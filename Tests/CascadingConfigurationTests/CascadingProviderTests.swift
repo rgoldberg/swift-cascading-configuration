@@ -165,13 +165,13 @@ struct CascadingProviderTests {
 	@available(Configuration 1.0, *)
 	@Test(
 		arguments: [
-			(nil, "1 scope"),
+			(Int?.none, String?.some("1 scope")),
 			(0, "1 scope"),
 			(1, "1 scope"),
 			(2, nil),
 			(3, nil),
 			(4, nil),
-		] as [(Int?, String?)],
+		],
 	)
 	func `cascade scope floor limits cascade`(cascadeScopeFloor: Int?, expected: String?) throws {
 		// The only value is at a key with 1 scope, so the lookup finds it unless
@@ -186,7 +186,7 @@ struct CascadingProviderTests {
 	}
 
 	@available(Configuration 1.0, *)
-	@Test(arguments: ["0", -1] as [ConfigContextValue])
+	@Test(arguments: [ConfigContextValue.string("0"), -1])
 	func `cascade scope floor ignored unless nonnegative integer`(cascadeScopeFloor: ConfigContextValue) throws {
 		// The entry would let the cascade reach "setting" if it were not ignored
 		let provider = CascadingProvider(

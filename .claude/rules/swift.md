@@ -98,6 +98,9 @@ Within this section & all subsections, `X` is a placeholder for any type name.
    - `var a = [] as [X]`
    - `var o = nil as X?`
    - `[("a", .y), ("b", .z)] as [(String, X)]`
+   - `[(nil, 1), (2, 0)] as [(X?, X)]` (in a collection literal lacking a
+     contextual type, iff qualifying only the 1st element's members does not
+     compile)
 3. Explicit type, e.g.:
    - `var a: [X] = .init()`
    - `var o: X? = nil`
