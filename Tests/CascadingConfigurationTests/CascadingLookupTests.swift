@@ -32,6 +32,21 @@ struct CascadingLookupTests {
 
 	@available(Configuration 1.0, *)
 	@Test
+	func `empty key cascades like any other key`() throws {
+		let recorder = KeyRecordingProvider()
+		let provider = CascadingProvider(providers: [.init(recorder, baseScope: ["org", "tool"])])
+		_ = try provider.value(forKey: .init([], context: .baseScopeCascadeScopeFloor(0)), type: .string)
+		#expect(recorder.keys == ["org.tool", "org", ""])
+		// A nonzero cascade scope floor keeps the whole base scope
+		_ = try provider.value(
+			forKey: .init([], context: .cascadeScopeFloor(1).baseScopeCascadeScopeFloor(0)),
+			type: .string,
+		)
+		#expect(recorder.keys == ["org.tool", "org", "", "org.tool"])
+	}
+
+	@available(Configuration 1.0, *)
+	@Test
 	func `empty key removes cascade context & applies base scope context`() throws {
 		let unscoped = KeyRecordingProvider()
 		let scoped = KeyRecordingProvider()

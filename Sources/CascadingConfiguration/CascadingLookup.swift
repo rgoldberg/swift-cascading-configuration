@@ -35,9 +35,8 @@ func cascadingLookups(
 	var context = key.context
 	let cascadeContext = CascadingProvider.removeCascadeContext(from: &context)
 	let baseScopes = upstreams.map { $0.baseScope.isEmpty ? [] : cascadeContext.baseScope ?? $0.baseScope }
-	guard let name = key.components.last else {
-		return baseScopes.enumerated().map { (upstreamIndex: $0, key: .init($1, context: context)) }
-	}
+	// The last component (none for an empty key), which the cascade never removes
+	let name = key.components.suffix(1)
 	let scope = key.components.dropLast()
 	let plans = zip(upstreams, baseScopes).map { upstream, baseScope in
 		let cascadeScopeFloor = (cascadeContext.cascadeScopeFloor ?? upstream.cascadeScopeFloor).rawValue
@@ -61,7 +60,7 @@ func cascadingLookups(
 					return depth >= plan.floor
 						? (
 							upstreamIndex: upstreamIndex,
-							key: .init(.init(plan.scope.prefix(depth)) + [name], context: context),
+							key: .init(.init(plan.scope.prefix(depth)) + name, context: context),
 						)
 						: nil
 				}
