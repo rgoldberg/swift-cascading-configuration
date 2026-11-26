@@ -13,4 +13,4 @@
 
 print_notice '🧪 Testing' "${@}"
 
-swift test --disable-xctest -q "${@}"
+swift test --disable-xctest "${@}"
