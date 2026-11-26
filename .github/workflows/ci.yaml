@@ -202,7 +202,7 @@ jobs:
           | sudo tee /etc/udev/rules.d/99-kvm4all.rules
         sudo udevadm control --reload-rules
         sudo udevadm trigger --name-match=kvm
-        # Deletes, instead of trashing, which frees no space, unused tools of the runner image
+        # Deletes unused tools of the runner image, instead of trashing them, which would free no space
         readonly -a unused_folders=(
           /opt/az /opt/ghc /opt/google /opt/hostedtoolcache /opt/microsoft /usr/local/share/boost
           /usr/local/share/chromium /usr/share/dotnet

@@ -151,7 +151,8 @@ done
 if git grep -nP '(^\s*|[;|&(]\s*)(rm(?!.*# Frees disk space on a Linux runner$)|cp(?!\s+-c\b))\s|\\e\[1;9?1m' --\
 	Scripts .github/workflows ':!Scripts/_setup-script'
 then
-	print_error 'Use trash instead of rm, cp -c instead of cp & print_error instead of printing an error in red'
+	print_error '%s (or end an rm that frees disk space on a Linux runner with # Frees disk space on a Linux runner)'\
+		'Use trash instead of rm, cp -c instead of cp & print_error instead of printing an error in red'
 	((exit_status |= 1))
 fi
 
