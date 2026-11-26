@@ -139,33 +139,96 @@ jobs:
 
     - *reject-modified-files
 
+  # Runs the scripts of swiftlang/github-workflows instead of its reusable workflow, whose actions are not pinned to a
+  # full-length commit SHA, as this repo requires
   build-test-android:
-    name: Build & Test (Android)
-    permissions:
-      contents: read
-    # editorconfig-checker-disable
-    # yamllint disable-line rule:line-length
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@e8b910942e79fb2c0654a87804d8f16e2304285c # 0.0.19
-    # editorconfig-checker-enable
-    with:
-      enable_linux_checks: false
-      enable_windows_checks: false
-      enable_android_sdk_build: true
-      enable_android_sdk_checks: true
-      # Swift 6.3 is the 1st version that has a released Swift SDK for Android
-      android_sdk_versions: '["6.3", "6.4"]'
+    name: Build & Test (Android, ${{matrix.swift}})
+    strategy:
+      matrix:
+        # Swift 6.3 is the 1st version that has a released Swift SDK for Android
+        swift: ['6.3', '6.4']
+      fail-fast: false
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        shell: zsh -efux --extended-glob --pipe-fail --warn-create-global {0}
+    env:
+      ANDROID_SDK_TRIPLES: >-
+        --android-sdk-triple=aarch64-unknown-linux-android28
+        --android-sdk-triple=x86_64-unknown-linux-android28
+    steps:
+    - name: 💤 Install zsh
+      shell: bash
+      run: sudo apt-get update -q && sudo apt-get install -qy zsh
+
+    - *checkout
+
+    - name: 🛒 Checkout swiftlang/github-workflows
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: swiftlang/github-workflows
+        # Release 0.0.19
+        ref: e8b910942e79fb2c0654a87804d8f16e2304285c
+        path: github-workflows
+        persist-credentials: false
+
+    - name: 🕊 Hide the Swift of the runner image
+      # The script below installs the Swift that its Swift SDK for Android needs only if no Swift is installed
+      run: |
+        sudo mv -- /usr/local/bin/swift /usr/local/bin/swiftc /usr/local/lib/libsourcekitdInProc.so /usr/share/swift\
+          "${RUNNER_TEMP}"
+
+    - name: 🏗 Install Swift SDK for Android & build library & tests
+      env:
+        SWIFT_VERSION: ${{matrix.swift}}
+      run: |
+        github-workflows/.github/workflows/scripts/install-and-build-with-sdk.sh\
+          --android\
+          --flags=--build-tests\
+          --build-command='swift build'\
+          ${=ANDROID_SDK_TRIPLES}\
+          --android-ndk-version=r30\
+          "${SWIFT_VERSION}"
+
+    - name: 🧹 Enable KVM & free disk space for the Android emulator
+      run: |
+        # Lets the emulator use KVM
+        print -r -- 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"'\
+          | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+        # Deletes, instead of trashing, which frees no space, unused tools of the runner image
+        readonly -a unused_folders=(
+          /opt/az /opt/ghc /opt/google /opt/hostedtoolcache /opt/microsoft /usr/local/share/boost
+          /usr/local/share/chromium /usr/share/dotnet
+        )
+        sudo rm -rf -- "${unused_folders[@]}" # Frees disk space on a Linux runner
+        df -h
+
+    - name: 🧪 Run tests in the Android emulator
+      run: github-workflows/.github/workflows/scripts/android/android-emulator-tests.sh ${=ANDROID_SDK_TRIPLES}
 
   build-test-windows:
-    name: Build & Test (Windows)
-    permissions:
-      contents: read
-    # editorconfig-checker-disable
-    # yamllint disable-line rule:line-length
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@e8b910942e79fb2c0654a87804d8f16e2304285c # 0.0.19
-    # editorconfig-checker-enable
-    with:
-      enable_linux_checks: false
-      windows_swift_versions: '["6.2", "6.3", "6.4"]'
+    name: Build & Test (Windows, ${{matrix.swift}})
+    strategy:
+      matrix:
+        swift: ['6.2', '6.3', '6.4']
+      fail-fast: false
+    runs-on: windows-2022
+    defaults:
+      run:
+        # Windows has no zsh
+        shell: pwsh
+    steps:
+    - *checkout
+
+    - name: 🧪 Build & test in the Swift container
+      env:
+        IMAGE: swift:${{matrix.swift}}-windowsservercore-ltsc2022
+      run: |
+        Start-Service docker
+        docker run -v "${env:GITHUB_WORKSPACE}:C:\source" -w C:\source $env:IMAGE swift test
+        exit $LASTEXITCODE
 
   build-apple-platform:
     name: Build (${{matrix.platform}})

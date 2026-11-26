@@ -27,7 +27,8 @@ paths:
   - external commands
 - Make variables local & readonly when possible
 - Use `cp -c` instead of `cp`
-- Use `trash` instead of `rm`
+- Use `trash` instead of `rm`, except to free disk space on a Linux runner,
+  which has no `trash`
 - In a GHA job that runs on any x86_64 runner, never use Homebrew (e.g., via
   `Scripts/bootstrap`), which no longer bottles updated formulae for x86_64, so
   upgrading builds them from source; install only the tools that the job needs,

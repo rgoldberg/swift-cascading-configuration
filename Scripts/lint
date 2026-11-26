@@ -145,8 +145,10 @@ for script in "${script_files[@]}"; do
 		((exit_status |= 1))
 	fi
 done
-# Each rm instead of trash, each cp without -c & each error printed in red instead of via print_error
-if git grep -nP '(^\s*|[;|&(]\s*)(rm|cp(?!\s+-c\b))\s|\\e\[1;9?1m' --\
+# Each rm instead of trash (except one that frees disk space on a Linux runner, which has no trash), each cp without -c
+# & each error printed in red instead of via print_error
+# shellcheck disable=SC2016
+if git grep -nP '(^\s*|[;|&(]\s*)(rm(?!.*# Frees disk space on a Linux runner$)|cp(?!\s+-c\b))\s|\\e\[1;9?1m' --\
 	Scripts .github/workflows ':!Scripts/_setup-script'
 then
 	print_error 'Use trash instead of rm, cp -c instead of cp & print_error instead of printing an error in red'
