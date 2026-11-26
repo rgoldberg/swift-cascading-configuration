@@ -1,0 +1,13 @@
+#
+# .github/ISSUE_TEMPLATE/config.yml
+# swift-cascading-configuration
+#
+# GitHub reads only config.yml, not config.yaml
+#
+---
+# Lets only a user with write access (e.g., an owner or an admin) open a blank issue
+blank_issues_enabled: false
+contact_links:
+- name: 🔒 Vulnerability Report
+  url: https://github.com/ro-ss/swift-cascading-configuration/security/advisories/new
+  about: Report a vulnerability privately, as the security policy describes.
