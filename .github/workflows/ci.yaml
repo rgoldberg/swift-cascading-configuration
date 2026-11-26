@@ -148,7 +148,8 @@ jobs:
         # Swift 6.3 is the 1st version that has a released Swift SDK for Android
         swift: ['6.3', '6.4']
       fail-fast: false
-    runs-on: ubuntu-26.04
+    # Swift 6.3 has no toolchain for Ubuntu 26.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: zsh -efux --extended-glob --pipe-fail --warn-create-global {0}

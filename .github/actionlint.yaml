@@ -8,4 +8,4 @@
 # Lists each GitHub-hosted runner label that actionlint does not know, because actionlint accepts an unknown label only
 # as that of a self-hosted runner
 self-hosted-runner:
-  labels: [ubuntu-26.04, xcode-27]
+  labels: [xcode-27]
